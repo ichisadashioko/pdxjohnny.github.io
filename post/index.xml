@@ -170,5 +170,122 @@ can see the solution.&lt;/p&gt;
 </description>
     </item>
     
+    <item>
+      <title>Trinity fuzzer on Android (on Intel)</title>
+      <link>https://pdxjohnny.github.io/post/trinity-fuzzer-android/</link>
+      <pubDate>Mon, 17 Oct 2016 12:51:22 -0700</pubDate>
+      
+      <guid>https://pdxjohnny.github.io/post/trinity-fuzzer-android/</guid>
+      <description>
+
+&lt;h2 id=&#34;step-1-clone-trinity&#34;&gt;Step 1 - Clone trinity&lt;/h2&gt;
+
+&lt;p&gt;Grab the source for trinity. We need to make some minor modifications.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;At the time of writing this the latest commit on master was
+3a0e33d1db3214503316840ecfb90075d60ab3be adapt instructions as necessary. The
+basic idea of static linking and disabling of feature&amp;rsquo;s you don&amp;rsquo;t need is
+still the same.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone https://github.com/kernelslacker/trinity
+cd trinity
+./configure
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;step-2-32-bit-and-static-compilation&#34;&gt;Step 2 - 32 bit and static compilation&lt;/h2&gt;
+
+&lt;p&gt;Edit the make file and add &lt;code&gt;-m32&lt;/code&gt; to any line containing &lt;code&gt;CFLAGS&lt;/code&gt; and add
+&lt;code&gt;-static&lt;/code&gt; to any line containing &lt;code&gt;LDFLAGS&lt;/code&gt;. Just one line not all of them that
+say LD/CFLAGS. For example.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;CFLAGS += -Wall -Wextra -g -O2 -I. -Iinclude/ -Wimplicit -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D__linux__
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Becomes&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;CFLAGS += -Wall -Wextra -g -O2 -I. -Iinclude/ -Wimplicit -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D__linux__ -m32
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;LDFLAGS += -rdynamic
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Becomes&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;LDFLAGS += -rdynamic -static
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Just change two lines and you&amp;rsquo;re done.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-3-fix-syscalls-send-c&#34;&gt;Step 3 - Fix syscalls/send.c&lt;/h2&gt;
+
+&lt;p&gt;I found that gcc 6.2.1 said that this is an error so it wouldn&amp;rsquo;t let me
+compile without this typecast. I haven&amp;rsquo;t noticed anything strange by doing this
+so I assume everything still works.&lt;/p&gt;
+
+&lt;p&gt;Change the line that reads&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;proto-&amp;gt;gen_packet(&amp;amp;si-&amp;gt;triplet, ptr, &amp;amp;rec-&amp;gt;a3);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;proto-&amp;gt;gen_packet(&amp;amp;si-&amp;gt;triplet, ptr, (size_t *) &amp;amp;rec-&amp;gt;a3);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And you should now make it past that compilation error.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;syscalls/send.c:33:41: error: passing argument 3 of ‘proto-&amp;gt;gen_packet’ from
+incompatible pointer type [-Werror=incompatible-pointer-types]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;step-4-edit-config-h&#34;&gt;Step 4 - Edit config.h&lt;/h2&gt;
+
+&lt;p&gt;Take out anything you don&amp;rsquo;t need or can&amp;rsquo;t compile from &lt;code&gt;config.h&lt;/code&gt;. For instance
+Android recommends building on Ubuntu 16.04 so we were on a Ubuntu 16.04.1 LTS
+machine which at the time of writing is Linux 4.4ish. So we couldn&amp;rsquo;t compile
+&lt;code&gt;fds/bpf.c&lt;/code&gt; because the kernel headers didn&amp;rsquo;t contain the right version of
+&lt;code&gt;linux/bpf.h&lt;/code&gt; (bpf_addr was missing some members).&lt;/p&gt;
+
+&lt;p&gt;The solution is to comment out &lt;code&gt;USE_BPF&lt;/code&gt; from &lt;code&gt;config.h&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;#define USE_BPF 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;// #define USE_BPF 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;step-5-verify&#34;&gt;Step 5 - Verify&lt;/h2&gt;
+
+&lt;p&gt;Before we push to the device make sure it has a chance of working. This means
+that it will be 32-bit staticly linked. For the edits we just made to the
+commit refernced at the top of this doc file reports the following.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;file trinity
+trinity: ELF 32-bit LSB executable, Intel 80386, version 1 (GNU/Linux), statically linked, for GNU/Linux 2.6.32, BuildID[sha1]=e533cc2db1db19c044bdbfa566c72299df7eefc2, not stripped
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;step-6-push-and-run&#34;&gt;Step 6 - Push and Run&lt;/h2&gt;
+
+&lt;p&gt;Put in on the device and run from &lt;code&gt;/sdcard&lt;/code&gt; folder.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;adb root
+adb remount rw
+adb disable-verity
+adb reboot
+adb push trinity /data/trinity
+adb shell &#39;cd /sdcard &amp;amp;&amp;amp; /data/trinity --dangerous -V /dev/ 2&amp;gt;&amp;amp;1&#39; | tee trinity-dev-1.log
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Take the blue pill and profit&lt;/p&gt;
+</description>
+    </item>
+    
   </channel>
 </rss>
