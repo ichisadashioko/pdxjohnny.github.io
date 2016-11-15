@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>https://pdxjohnny.github.io/</loc>
+    <lastmod>2016-11-11T12:22:04-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pdxjohnny.github.io/post/3-resistor-bias-nmos/</loc>
+    <lastmod>2016-11-11T12:22:04-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pdxjohnny.github.io/about/</loc>
+    <lastmod>2016-11-11T12:22:04-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://pdxjohnny.github.io/post/arm-qemu/</loc>
+    <lastmod>2016-11-09T14:57:07-08:00</lastmod>
+  </url>
+  
+</urlset>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on John Andersen (pdxjohnny)</title>
+    <link>https://pdxjohnny.github.io/post/index.xml</link>
+    <description>Recent content in Posts on John Andersen (pdxjohnny)</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 11 Nov 2016 12:22:04 -0800</lastBuildDate>
+    <atom:link href="https://pdxjohnny.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>3 Resistor Bias Circuit with NMOS Transistor</title>
+      <link>https://pdxjohnny.github.io/post/3-resistor-bias-nmos/</link>
+      <pubDate>Fri, 11 Nov 2016 12:22:04 -0800</pubDate>
+      
+      <guid>https://pdxjohnny.github.io/post/3-resistor-bias-nmos/</guid>
+      <description>
+
+&lt;h2 id=&#34;circuit&#34;&gt;Circuit&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://pdxjohnny.github.io/images/3-resistor-bias-circuit.png&#34; alt=&#34;3-resistor-bias-circuit&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;steps&#34;&gt;Steps&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Pick a Vdd&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;9 Volts
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Pick a transistor and Vtn for it&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;2N7002
+Vtn = 1.6
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Pick and Id&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;2 mA
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Find RL for Vdd and Id&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;RL = Vdd / Id
+RL = 9 Volts / 2 mA
+RL = 4.5 k Ohms
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Pick a much smaller current for R1 and R2, Ir (bias resistor current)&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code&gt;Ir = 200 uA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Find R1 and R2 such that the voltage drop across R2 is the same as Vtn. This
+is so that any input signal at all will act to turn on the transistor. Then
+make R1 drop the rest of Vdd.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code&gt;R2 = Vtn / Ir
+R2 = 1.6 / 200 uA
+R2 = 8 k Ohms
+
+R2 = (Vdd - Vtn) / Ir
+R2 = (9 - 1.6) / 200 uA
+R2 = 7.4 / 200 uA
+R2 = 37 k Ohms
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Plug in reasonable values for the rest&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Cin and Cout should both be much much (two orders of magnitude) less than their
+respective resistors.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Rin = 1 k Ohms
+Cin = 470 nF
+Cout = 470 nF
+Rout = 100k
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ARM workflow with qemu and arm-none-eabi</title>
+      <link>https://pdxjohnny.github.io/post/arm-qemu/</link>
+      <pubDate>Wed, 09 Nov 2016 14:57:07 -0800</pubDate>
+      
+      <guid>https://pdxjohnny.github.io/post/arm-qemu/</guid>
+      <description>
+
+&lt;p&gt;This should get you up and running writing ARM assembly without hardware.&lt;/p&gt;
+
+&lt;p&gt;Clone this the repo for this turtorial.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone https://gist.github.com/pdxjohnny/3de9a9bdd38cacf3ea394207762f1002 arm-qemu
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;dependencies&#34;&gt;Dependencies&lt;/h2&gt;
+
+&lt;p&gt;The first step is to install the necessary packages. These are the
+arm-none-eabi tool chain and qemu with arm support.&lt;/p&gt;
+
+&lt;h4 id=&#34;arch-linux&#34;&gt;Arch Linux&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;sudo pacman -S arm-none-eabi-gcc arm-none-eabi-binutils arm-none-eabi-gdb \
+  arm-none-eabi-newlib qemu qemu-arch-extra
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;ubuntu&#34;&gt;Ubuntu&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;sudo apt -y install make qemu-system-arm \
+    gcc-arm-none-eabi binutils-arm-none-eabi gdb-arm-none-eabi \
+    libstdc++-arm-none-eabi-newlib libnewlib-arm-none-eabi
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;gdb&#34;&gt;GDB&lt;/h2&gt;
+
+&lt;p&gt;In &lt;code&gt;.gdbinit&lt;/code&gt; we have placed commands which gdb will run on startup. But to
+make this work the &lt;code&gt;.gdbinit&lt;/code&gt; file in our home directory needs to say its ok
+for gdb to load this &lt;code&gt;.gdbinit&lt;/code&gt; file. To do that we just add the directory to
+the auto-load safe-path.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;echo &amp;quot;set auto-load safe-path $PWD&amp;quot; &amp;gt;&amp;gt; ~/.gdbinit
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;building&#34;&gt;Building&lt;/h2&gt;
+
+&lt;p&gt;The Makefile should have plenty of comments to help you understand what is
+being done in it. It takes all the &lt;code&gt;.s&lt;/code&gt; assembly files in the current directory
+and compiles them into object files. Then it runs the linker to create the ELF
+binary. All of this is done with arm-none-eabi-gcc rather than your regular
+gcc for host programs.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;make
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Will rebuild all the modified &lt;code&gt;.s&lt;/code&gt; files into their object file forms and
+relink to the binary. Run &lt;code&gt;make clean all&lt;/code&gt; if you are having really weird
+errors. That usually fixes things.&lt;/p&gt;
+
+&lt;h2 id=&#34;running&#34;&gt;Running&lt;/h2&gt;
+
+&lt;p&gt;To run you can do &lt;code&gt;qemu-arm ./main&lt;/code&gt;. But hey why not put it in the Makefile
+right.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;make all qemu
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Will rebuild any changed files and run the created binary in qemu.&lt;/p&gt;
+
+&lt;h2 id=&#34;debugging&#34;&gt;Debugging&lt;/h2&gt;
+
+&lt;p&gt;Oh you ran the program and everything exploded? Time to debug.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;make all gdb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Will rebuild all your source files and start the program in qemu with it as a
+gdb target on port 1234, so make sure nothing else is using that port or change
+it in the &lt;code&gt;.gdbinit&lt;/code&gt; file and &lt;code&gt;Makefile&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;help-nothing-works&#34;&gt;Help nothing works&lt;/h2&gt;
+
+&lt;p&gt;Comment on the gist with the problem so we can figure it out and everyone else
+can see the solution.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,216 @@
+    <!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="author" content="John Andersen">
+		
+		<meta name="generator" content="Hugo 0.18-DEV" />
+		<title>ARM workflow with qemu and arm-none-eabi &middot; John Andersen (pdxjohnny)</title>
+		<link rel="shortcut icon" href="https://pdxjohnny.github.io/images/favicon.ico">
+		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/style.css">
+		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/highlight.css">
+		
+
+		
+		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/monosocialiconsfont.css">
+		
+
+		
+		<link href="https://pdxjohnny.github.io/index.xml" rel="alternate" type="application/rss+xml" title="John Andersen (pdxjohnny)" />
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://pdxjohnny.github.io/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+		<a href='https://pdxjohnny.github.io/about'>About</a>
+	
+
+	
+	<a class="cta" href="https://pdxjohnny.github.io/index.xml">Subscribe</a>
+	
+</nav>
+
+        <section id="wrapper">
+            <article class="post">
+                <header>
+                    <h1>ARM workflow with qemu and arm-none-eabi</h1>
+                    <h2 class="headline">
+                    November 9, 2016 
+                    <br>
+                    
+                    </h2>
+                </header>
+                <section id="post-body">
+                    
+
+<p>This should get you up and running writing ARM assembly without hardware.</p>
+
+<p>Clone this the repo for this turtorial.</p>
+
+<pre><code>git clone https://gist.github.com/pdxjohnny/3de9a9bdd38cacf3ea394207762f1002 arm-qemu
+</code></pre>
+
+<h2 id="dependencies">Dependencies</h2>
+
+<p>The first step is to install the necessary packages. These are the
+arm-none-eabi tool chain and qemu with arm support.</p>
+
+<h4 id="arch-linux">Arch Linux</h4>
+
+<pre><code>sudo pacman -S arm-none-eabi-gcc arm-none-eabi-binutils arm-none-eabi-gdb \
+  arm-none-eabi-newlib qemu qemu-arch-extra
+</code></pre>
+
+<h4 id="ubuntu">Ubuntu</h4>
+
+<pre><code>sudo apt -y install make qemu-system-arm \
+    gcc-arm-none-eabi binutils-arm-none-eabi gdb-arm-none-eabi \
+    libstdc++-arm-none-eabi-newlib libnewlib-arm-none-eabi
+</code></pre>
+
+<h2 id="gdb">GDB</h2>
+
+<p>In <code>.gdbinit</code> we have placed commands which gdb will run on startup. But to
+make this work the <code>.gdbinit</code> file in our home directory needs to say its ok
+for gdb to load this <code>.gdbinit</code> file. To do that we just add the directory to
+the auto-load safe-path.</p>
+
+<pre><code>echo &quot;set auto-load safe-path $PWD&quot; &gt;&gt; ~/.gdbinit
+</code></pre>
+
+<h2 id="building">Building</h2>
+
+<p>The Makefile should have plenty of comments to help you understand what is
+being done in it. It takes all the <code>.s</code> assembly files in the current directory
+and compiles them into object files. Then it runs the linker to create the ELF
+binary. All of this is done with arm-none-eabi-gcc rather than your regular
+gcc for host programs.</p>
+
+<pre><code>make
+</code></pre>
+
+<p>Will rebuild all the modified <code>.s</code> files into their object file forms and
+relink to the binary. Run <code>make clean all</code> if you are having really weird
+errors. That usually fixes things.</p>
+
+<h2 id="running">Running</h2>
+
+<p>To run you can do <code>qemu-arm ./main</code>. But hey why not put it in the Makefile
+right.</p>
+
+<pre><code>make all qemu
+</code></pre>
+
+<p>Will rebuild any changed files and run the created binary in qemu.</p>
+
+<h2 id="debugging">Debugging</h2>
+
+<p>Oh you ran the program and everything exploded? Time to debug.</p>
+
+<pre><code>make all gdb
+</code></pre>
+
+<p>Will rebuild all your source files and start the program in qemu with it as a
+gdb target on port 1234, so make sure nothing else is using that port or change
+it in the <code>.gdbinit</code> file and <code>Makefile</code>.</p>
+
+<h2 id="help-nothing-works">Help nothing works</h2>
+
+<p>Comment on the gist with the problem so we can figure it out and everyone else
+can see the solution.</p>
+
+                </section>
+            </article>
+            <footer id="post-meta" class="clearfix">
+                <a href="https://twitter.com/pdxjohnny">
+                        <img class="avatar" src="https://pdxjohnny.github.io/images/avatar.png">
+                        <div>
+                            <span class="dark">John Andersen</span>
+                            <span>up in yo kernel</span>
+                        </div>
+                    </a>
+                <section id="sharing">
+                    <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fpdxjohnny.github.io%2fpost%2farm-qemu%2f - ARM%20workflow%20with%20qemu%20and%20arm-none-eabi by @pdxjohnny"><span class="icon-twitter"> Tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+                </section>
+            </footer>
+
+            
+
+            <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+    
+    
+        
+        <li>
+            <a href="https://pdxjohnny.github.io/post/3-resistor-bias-nmos/">3 Resistor Bias Circuit with NMOS Transistor<aside class="dates">Nov 11</aside></a>
+        </li>
+        
+   
+    
+        
+   
+    
+        
+        <li>
+            <a href="https://pdxjohnny.github.io/post/arm-qemu/">ARM workflow with qemu and arm-none-eabi<aside class="dates">Nov 9</aside></a>
+        </li>
+        
+   
+</ul>
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pdxjohnny">
+        circlegithub
+    </a>
+    
+    <a class="symbol" href="https://www.twitter.com/pdxjohnny">
+        circletwitterbird
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2016 John Andersen
+    
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://pdxjohnny.github.io/js/jquery.min.js"></script>
+<script src="https://pdxjohnny.github.io/js/main.js"></script>
+<script src="https://pdxjohnny.github.io/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+    </body>
+</html>
