@@ -1,0 +1,652 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on John Andersen (pdxjohnny)</title>
+    <link>https://pdxjohnny.github.io/post/index.xml</link>
+    <description>Recent content in Posts on John Andersen (pdxjohnny)</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 11 Nov 2016 12:22:04 -0800</lastBuildDate>
+    <atom:link href="https://pdxjohnny.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>3 Resistor Bias Circuit with NMOS Transistor</title>
+      <link>https://pdxjohnny.github.io/post/3-resistor-bias-nmos/</link>
+      <pubDate>Fri, 11 Nov 2016 12:22:04 -0800</pubDate>
+      
+      <guid>https://pdxjohnny.github.io/post/3-resistor-bias-nmos/</guid>
+      <description>
+
+&lt;h2 id=&#34;circuit&#34;&gt;Circuit&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://pdxjohnny.github.io/images/3-resistor-bias-circuit.png&#34; alt=&#34;3-resistor-bias-circuit&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;steps&#34;&gt;Steps&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Pick a Vdd&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;9 Volts
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Pick a transistor and Vtn for it&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;2N7002
+Vtn = 1.6
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Pick and Id&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;2 mA
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Find RL for Vdd and Id&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;RL = Vdd / Id
+RL = 9 Volts / 2 mA
+RL = 4.5 k Ohms
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Pick a much smaller current for R1 and R2, Ir (bias resistor current)&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code&gt;Ir = 200 uA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Find R1 and R2 such that the voltage drop across R2 is the same as Vtn. This
+is so that any input signal at all will act to turn on the transistor. Then
+make R1 drop the rest of Vdd.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code&gt;R2 = Vtn / Ir
+R2 = 1.6 / 200 uA
+R2 = 8 k Ohms
+
+R2 = (Vdd - Vtn) / Ir
+R2 = (9 - 1.6) / 200 uA
+R2 = 7.4 / 200 uA
+R2 = 37 k Ohms
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Plug in reasonable values for the rest&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Cin and Cout should both be much much (two orders of magnitude) less than their
+respective resistors.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Rin = 1 k Ohms
+Cin = 470 nF
+Cout = 470 nF
+Rout = 100k
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ARM workflow with qemu and arm-none-eabi</title>
+      <link>https://pdxjohnny.github.io/post/arm-qemu/</link>
+      <pubDate>Wed, 09 Nov 2016 14:57:07 -0800</pubDate>
+      
+      <guid>https://pdxjohnny.github.io/post/arm-qemu/</guid>
+      <description>
+
+&lt;p&gt;This should get you up and running writing ARM assembly without hardware.&lt;/p&gt;
+
+&lt;p&gt;Clone this the repo for this turtorial.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone https://gist.github.com/pdxjohnny/3de9a9bdd38cacf3ea394207762f1002 arm-qemu
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;dependencies&#34;&gt;Dependencies&lt;/h2&gt;
+
+&lt;p&gt;The first step is to install the necessary packages. These are the
+arm-none-eabi tool chain and qemu with arm support.&lt;/p&gt;
+
+&lt;h4 id=&#34;arch-linux&#34;&gt;Arch Linux&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;sudo pacman -S arm-none-eabi-gcc arm-none-eabi-binutils arm-none-eabi-gdb \
+  arm-none-eabi-newlib qemu qemu-arch-extra
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;ubuntu&#34;&gt;Ubuntu&lt;/h4&gt;
+
+&lt;pre&gt;&lt;code&gt;sudo apt -y install make qemu-system-arm \
+    gcc-arm-none-eabi binutils-arm-none-eabi gdb-arm-none-eabi \
+    libstdc++-arm-none-eabi-newlib libnewlib-arm-none-eabi
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;gdb&#34;&gt;GDB&lt;/h2&gt;
+
+&lt;p&gt;In &lt;code&gt;.gdbinit&lt;/code&gt; we have placed commands which gdb will run on startup. But to
+make this work the &lt;code&gt;.gdbinit&lt;/code&gt; file in our home directory needs to say its ok
+for gdb to load this &lt;code&gt;.gdbinit&lt;/code&gt; file. To do that we just add the directory to
+the auto-load safe-path.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;echo &amp;quot;set auto-load safe-path $PWD&amp;quot; &amp;gt;&amp;gt; ~/.gdbinit
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;building&#34;&gt;Building&lt;/h2&gt;
+
+&lt;p&gt;The Makefile should have plenty of comments to help you understand what is
+being done in it. It takes all the &lt;code&gt;.s&lt;/code&gt; assembly files in the current directory
+and compiles them into object files. Then it runs the linker to create the ELF
+binary. All of this is done with arm-none-eabi-gcc rather than your regular
+gcc for host programs.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;make
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Will rebuild all the modified &lt;code&gt;.s&lt;/code&gt; files into their object file forms and
+relink to the binary. Run &lt;code&gt;make clean all&lt;/code&gt; if you are having really weird
+errors. That usually fixes things.&lt;/p&gt;
+
+&lt;h2 id=&#34;running&#34;&gt;Running&lt;/h2&gt;
+
+&lt;p&gt;To run you can do &lt;code&gt;qemu-arm ./main&lt;/code&gt;. But hey why not put it in the Makefile
+right.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;make all qemu
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Will rebuild any changed files and run the created binary in qemu.&lt;/p&gt;
+
+&lt;h2 id=&#34;debugging&#34;&gt;Debugging&lt;/h2&gt;
+
+&lt;p&gt;Oh you ran the program and everything exploded? Time to debug.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;make all gdb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Will rebuild all your source files and start the program in qemu with it as a
+gdb target on port 1234, so make sure nothing else is using that port or change
+it in the &lt;code&gt;.gdbinit&lt;/code&gt; file and &lt;code&gt;Makefile&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;help-nothing-works&#34;&gt;Help nothing works&lt;/h2&gt;
+
+&lt;p&gt;Comment on the gist with the problem so we can figure it out and everyone else
+can see the solution.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Trinity fuzzer on Android (on Intel)</title>
+      <link>https://pdxjohnny.github.io/post/trinity-fuzzer-android/</link>
+      <pubDate>Mon, 17 Oct 2016 12:51:22 -0700</pubDate>
+      
+      <guid>https://pdxjohnny.github.io/post/trinity-fuzzer-android/</guid>
+      <description>
+
+&lt;h2 id=&#34;step-1-clone-trinity&#34;&gt;Step 1 - Clone trinity&lt;/h2&gt;
+
+&lt;p&gt;Grab the source for trinity. We need to make some minor modifications.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;At the time of writing this the latest commit on master was
+3a0e33d1db3214503316840ecfb90075d60ab3be adapt instructions as necessary. The
+basic idea of static linking and disabling of feature&amp;rsquo;s you don&amp;rsquo;t need is
+still the same.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone https://github.com/kernelslacker/trinity
+cd trinity
+./configure
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;step-2-32-bit-and-static-compilation&#34;&gt;Step 2 - 32 bit and static compilation&lt;/h2&gt;
+
+&lt;p&gt;Edit the make file and add &lt;code&gt;-m32&lt;/code&gt; to any line containing &lt;code&gt;CFLAGS&lt;/code&gt; and add
+&lt;code&gt;-static&lt;/code&gt; to any line containing &lt;code&gt;LDFLAGS&lt;/code&gt;. Just one line not all of them that
+say LD/CFLAGS. For example.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;CFLAGS += -Wall -Wextra -g -O2 -I. -Iinclude/ -Wimplicit -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D__linux__
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Becomes&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;CFLAGS += -Wall -Wextra -g -O2 -I. -Iinclude/ -Wimplicit -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D__linux__ -m32
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;LDFLAGS += -rdynamic
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Becomes&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;LDFLAGS += -rdynamic -static
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Just change two lines and you&amp;rsquo;re done.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-3-fix-syscalls-send-c&#34;&gt;Step 3 - Fix syscalls/send.c&lt;/h2&gt;
+
+&lt;p&gt;I found that gcc 6.2.1 said that this is an error so it wouldn&amp;rsquo;t let me
+compile without this typecast. I haven&amp;rsquo;t noticed anything strange by doing this
+so I assume everything still works.&lt;/p&gt;
+
+&lt;p&gt;Change the line that reads&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;proto-&amp;gt;gen_packet(&amp;amp;si-&amp;gt;triplet, ptr, &amp;amp;rec-&amp;gt;a3);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;proto-&amp;gt;gen_packet(&amp;amp;si-&amp;gt;triplet, ptr, (size_t *) &amp;amp;rec-&amp;gt;a3);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And you should now make it past that compilation error.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;syscalls/send.c:33:41: error: passing argument 3 of ‘proto-&amp;gt;gen_packet’ from
+incompatible pointer type [-Werror=incompatible-pointer-types]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&#34;step-4-edit-config-h&#34;&gt;Step 4 - Edit config.h&lt;/h2&gt;
+
+&lt;p&gt;Take out anything you don&amp;rsquo;t need or can&amp;rsquo;t compile from &lt;code&gt;config.h&lt;/code&gt;. For instance
+Android recommends building on Ubuntu 16.04 so we were on a Ubuntu 16.04.1 LTS
+machine which at the time of writing is Linux 4.4ish. So we couldn&amp;rsquo;t compile
+&lt;code&gt;fds/bpf.c&lt;/code&gt; because the kernel headers didn&amp;rsquo;t contain the right version of
+&lt;code&gt;linux/bpf.h&lt;/code&gt; (bpf_addr was missing some members).&lt;/p&gt;
+
+&lt;p&gt;The solution is to comment out &lt;code&gt;USE_BPF&lt;/code&gt; from &lt;code&gt;config.h&lt;/code&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;#define USE_BPF 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-c&#34;&gt;// #define USE_BPF 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;step-5-verify&#34;&gt;Step 5 - Verify&lt;/h2&gt;
+
+&lt;p&gt;Before we push to the device make sure it has a chance of working. This means
+that it will be 32-bit staticly linked. For the edits we just made to the
+commit refernced at the top of this doc file reports the following.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;file trinity
+trinity: ELF 32-bit LSB executable, Intel 80386, version 1 (GNU/Linux), statically linked, for GNU/Linux 2.6.32, BuildID[sha1]=e533cc2db1db19c044bdbfa566c72299df7eefc2, not stripped
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;step-6-push-and-run&#34;&gt;Step 6 - Push and Run&lt;/h2&gt;
+
+&lt;p&gt;Put in on the device and run from &lt;code&gt;/sdcard&lt;/code&gt; folder.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;adb root
+adb remount rw
+adb disable-verity
+adb reboot
+adb push trinity /data/trinity
+adb shell &#39;cd /sdcard &amp;amp;&amp;amp; /data/trinity --dangerous -V /dev/ 2&amp;gt;&amp;amp;1&#39; | tee trinity-dev-1.log
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Take the blue pill and profit&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Fuzzing network applications with peach</title>
+      <link>https://pdxjohnny.github.io/post/peach-network/</link>
+      <pubDate>Wed, 10 Aug 2016 13:35:13 -0700</pubDate>
+      
+      <guid>https://pdxjohnny.github.io/post/peach-network/</guid>
+      <description>
+
+&lt;p&gt;So you want to fuzz network applications with peach eh? Well you&amp;rsquo;ve come to the
+right place. This is a tutorial on how to get you fuzzing TCP applications,
+without TLS/SSL enabled. If you want to fuzz UDP or an application which only
+communicates via TLS/SSL then this is a great place for you to start, however it
+will not answer all your questions. I will point you in the right direction at
+the end of this post.&lt;/p&gt;
+
+&lt;p&gt;The first step in fuzzing is to understand the structure of the protocol. It
+often helps to have an example of this structure. Therefore we will be
+capturing the data of our target and simply playing it back. If you were to
+spend more time, which you should, then you would make data models in peach
+which contain specific fields rather than the blob we will be using.&lt;/p&gt;
+
+&lt;p&gt;The two most well known ways of getting network traffic are tcpdump and
+wireshark. Peach can use input from a file for the data model and mutate it. We
+are going to use a tiny tool I wrote to capture the conversations back and
+forth rather than telling you to open tcpdump / wireshark and copy paste to a
+file. If you would rather do that be my guest.&lt;/p&gt;
+
+&lt;h2 id=&#34;enter-convo-capture&#34;&gt;Enter convo-capture&lt;/h2&gt;
+
+&lt;p&gt;This saves the TCP conversation to files. Give it the port and host it needs to
+be monitoring. This is especially useful for fuzzing with peach on TCP based
+programs so that you don&amp;rsquo;t have to go into wireshark to capture then copy paste
+the data from each sequence of packets. This will take all packets and put them
+in a file until the other endpoint sends data. Then it will increment the
+number on the exchange and write the data to that exchanges file.&lt;/p&gt;
+
+&lt;p&gt;The binary has been built and included in the gist for your convenience.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;By no means do I condone putting binaries in git repos but I know not
+everyone has the go toolchain. You need libpcap and libpthread to run it.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Building will use sudo because it will &lt;code&gt;set_cap_raw&lt;/code&gt; on convo-capture. If you
+don&amp;rsquo;t want to set this then you have to run convo-capture as root.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;git clone https://gist.github.com/pdxjohnny/e2d1df77e81f07254da192fe1bc568a0 convo-capture
+cd !$
+./build.sh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now you can move it to bin if you want or run it prepended with ./ from the
+directory you built it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo mv convo-capture /usr/bin/convo-capture
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Personally I like to put things in ~/.local/bin/ but do as you will&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;We are now ready to capture packets. Keep in mind that convo-capture will not
+write over files that you have previously captured if they are in the directory
+you are working in. Be sure to delete files from previous captures or change to
+a new directory.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s try to capture HTTP traffic using curl and python3&amp;rsquo;s http.server
+(SimpleHTTPServer in python2). First we need to ssh to another computer and
+start an HTTP server or we can start one on our local machine. If you start one
+on your machine then everywhere you see example.com replace it with localhost
+and add &lt;code&gt;-i lo&lt;/code&gt; to convo-capture for capturing on the loopback interface.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;[pdxjohnny@pdxjohnny convo-capture]$ ssh example.com
+[pdxjohnny@example.com ~]$ python3 -m http.server 4444
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now that we have a HTTP server running lets start convo-capture.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# For localhost add -i lo
+# convo-capture -p 4444 -ip localhost -i lo -v
+[pdxjohnny@pdxjohnny convo-capture]$ convo-capture -p 4444 -ip example.com -v
+Capturing TCP port 4444 for host example.com
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Ok great we are now capturing all traffic going to example.com on port 4444 from
+our computer and from example.com port 4444 back to our computer.
+Now we just need to use curl to generate a request we can capture.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;curl -v http://example.com:4444/file
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Request sent! Look back at the session running convo-capture, you should see
+that the output you observed in curl has been captured (expect for the &amp;lt; and &amp;gt;
+left of the headers, curl adds those).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;[pdxjohnny@pdxjohnny convo-capture]$ convo-capture -p 4444 -ip example.com -v
+Capturing TCP port 4444 for host example.com
+GET /file HTTP/1.1
+Host: example.com:4444
+User-Agent: curl/7.47.0
+Accept: */*
+
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.4.2
+Date: Wed, 10 Aug 2016 16:38:42 GMT
+Content-type: text/plain
+Content-Length: 514
+Last-Modified: Tue, 26 Jul 2016 14:43:05 GMT
+
+Yo this is the file
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now you can ctrl-c to stop the capture. As you can see we captured the
+conversation from our local machine to the remote host and the response the
+remote host sent us. If you do an ls you will also see the files that were
+created by this capture.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;[pdxjohnny@pdxjohnny convo-capture]$ ls -lAF
+total 5752
+... Aug 10 09:34 10.7.202.149-&amp;gt;10.7.202.78-0
+... Aug 10 09:34 10.7.202.78-&amp;gt;10.7.202.149-0
+... Aug 10 08:35 build.sh*
+... Aug 10 09:17 convo-capture*
+... Aug 10 09:33 .git/
+... Aug 10 09:16 .gitignore
+... Aug 10 09:15 main.go
+... Aug 10 09:58 README.md
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;cating the files will make convo-capture&amp;rsquo;s usefulness apparent.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-log&#34;&gt;[pdxjohnny@pdxjohnny convo-capture]$ cat 10.7.202.149-&amp;gt;10.7.202.78-0
+GET /file HTTP/1.1
+Host: example.com:4444
+User-Agent: curl/7.47.0
+Accept: */*
+
+[pdxjohnny@pdxjohnny convo-capture]$ cat 10.7.202.78-&amp;gt;10.7.202.149-0
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.4.2
+Date: Wed, 10 Aug 2016 16:38:42 GMT
+Content-type: text/plain
+Content-Length: 514
+Last-Modified: Tue, 26 Jul 2016 14:43:05 GMT
+
+Yo this is the file
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As you can see it has assembled the packets into files based on the order they
+were sent in. For me the second file, the servers reply, was two packets.
+convo-capture saw the two packets in a row from the server to client and said
+ok this is all part of one message I&amp;rsquo;m going to save it to a file as such. A
+message is a continuous sequence of packets ended when the other side starts
+sending a message. The more messages that are collected the more files you will
+see after you kill convo-capture.&lt;/p&gt;
+
+&lt;p&gt;There was only one back and forth so they are both 0 in the sequence. If you
+were to have ran curl twice with convo-capture running then you would see the
+contents of 0 repeated in 1.&lt;/p&gt;
+
+&lt;p&gt;This is very useful for fuzzing with peach. Peach allows us to order our call
+and response to the target program. For example say you want to fuzz something
+like git. git is not a simple call and response. It has an exchange of call,
+response, call, response for a clone. Let&amp;rsquo;s walk through how you would use
+convo-capture to fuzz the git protocol with peach.&lt;/p&gt;
+
+&lt;h2 id=&#34;capturing-the-git-protocol&#34;&gt;Capturing the git protocol&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://asciinema.org/a/7xd0u4u0vfv7n7s7gq4f0zdg2&#34;&gt;&lt;img src=&#34;https://asciinema.org/a/7xd0u4u0vfv7n7s7gq4f0zdg2.png&#34; alt=&#34;asciicast&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;This video goes shows the how to capture the data involved in a git clone
+over the git protocol. Use it as a reference if you are having trouble with
+the steps below.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Let&amp;rsquo;s take a stroll on over to tmp so we don&amp;rsquo;t create a bunch of useless files.
+We&amp;rsquo;ll make a directory there to play in.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;mkdir /tmp/demo
+cd /tmp/demo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Make a few directories so nothing writes over each other. Then well make a git
+repo and populate it with some files.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;mkdir clonedir capture
+mkdir testrepo
+cd testrepo
+cat &amp;lt;&amp;lt; EOF &amp;gt; README.md
+This is a super cool test repo
+EOF
+git init
+git add -A
+git commit -sam &#39;Added README.md&#39;
+cd ..
+# You should now be back in /tmp/demo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We have our testrepo, now lets create a bare copy of it to be served by &lt;a href=&#34;https://git-scm.com/book/en/v1/Git-on-the-Server-Git-Daemon&#34;&gt;git
+daemon&lt;/a&gt;. This requires that we make the &lt;code&gt;git-daemon-export-ok&lt;/code&gt; file
+as well. Then we will start the git server.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;git clone --bare testrepo testrepo.git
+touch testrepo.git/git-daemon-export-ok
+git daemon --reuseaddr --base-path=$PWD $PWD
+# PWD is faster than typing /tmp/demo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Great! The git server is up! We can look up what port it is running on, but
+if perhaps we were fuzzing something we didn&amp;rsquo;t know we would have to find out.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# Apparently netstat is depricated, so let&#39;s use ss
+ss -ltnp | grep git
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alright its port 9418. In another shell go to the capture directory and start
+convo-capture.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;cd /tmp/demo/capture
+convo-capture -p 9418 -i lo
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Capture is running, git server is up, all that&amp;rsquo;s left is to go to clonedir and
+watch the magic happen.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;cd /tmp/demo/clonedir
+git clone git://localhost/testrepo.git
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now switch back to the shell running convo-capture and hit it will ctrl-c. You
+should see four files in the capture directory. We are going to fuzz the git
+client so right now we are interested in the files which go from port 9418 to
+some other port.&lt;/p&gt;
+
+&lt;h2 id=&#34;using-our-captured-data-to-fuzz-with-peach&#34;&gt;Using our captured data to fuzz with peach&lt;/h2&gt;
+
+&lt;p&gt;You should usually test against the master branch or the latest version of
+whatever you are fuzzing. You don&amp;rsquo;t want to waste time finding something which
+has already been fixed. This is why we are going to build git from source. Of
+course you don&amp;rsquo;t have to do this. But if you have never built something from
+source it would be good practice.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://asciinema.org/a/82390&#34;&gt;&lt;img src=&#34;https://asciinema.org/a/82390.png&#34; alt=&#34;asciicast&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;This video shows the peach process. You probably want to skip past the
+part were we run make on git.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Now that we know what the git server is sending to the client we could either
+fuzz the server or the client. The client is easy because it exits after
+cloning were as the server stays up to serve requests.&lt;/p&gt;
+
+&lt;p&gt;We are going to compile git from source so we need to download its
+dependencies.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo apt-get -y install libcurl4-gnutls-dev libexpat1-dev gettext \
+  libz-dev libssl-dev \
+  || sudo yum install curl-devel expat-devel gettext-devel \
+  openssl-devel perl-devel zlib-devel
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we are going to clone git build it and install it.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;mkdir -p /tmp/demo/
+cd /tmp/demo/
+git clone --depth=1 https://github.com/git/git
+cd /tmp/demo/git/
+# I found that the latest git doesn&#39;t cooperate unless I install it
+sudo make install
+git --version
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Git is installed, now lets copy our relevant captures to a testing directory.
+Here we clone the repo for this post and copy the git.xml file out of it. But
+you could of course make your own or modify the one here.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;cd /tmp/demo/
+mkdir gitfuzzy
+cd gitfuzzy
+cp /tmp/demo/capture/\:\:1\:9418-\&amp;gt;* ./
+git clone https://gist.github.com/pdxjohnny/e2d1df77e81f07254da192fe1bc568a0 t
+cp t/git.xml ./
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;git.xml&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-xml&#34;&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;utf-8&amp;quot;?&amp;gt;
+&amp;lt;Peach&amp;gt;
+    &amp;lt;DataModel name=&amp;quot;TheDataModel&amp;quot;&amp;gt;
+        &amp;lt;Blob/&amp;gt;
+    &amp;lt;/DataModel&amp;gt;
+    &amp;lt;StateModel name=&amp;quot;TheState&amp;quot; initialState=&amp;quot;Initial&amp;quot;&amp;gt;
+        &amp;lt;State name=&amp;quot;Initial&amp;quot;&amp;gt;
+            &amp;lt;Action type=&amp;quot;accept&amp;quot;/&amp;gt;
+            &amp;lt;!-- receive bytes --&amp;gt;
+            &amp;lt;Action type=&amp;quot;input&amp;quot;&amp;gt;
+                &amp;lt;DataModel ref=&amp;quot;TheDataModel&amp;quot;/&amp;gt;
+            &amp;lt;/Action&amp;gt;
+            &amp;lt;!-- send bytes --&amp;gt;
+            &amp;lt;Action type=&amp;quot;output&amp;quot;&amp;gt;
+                &amp;lt;DataModel ref=&amp;quot;TheDataModel&amp;quot;/&amp;gt;
+                &amp;lt;!-- Change this to be whatever port your git client was on --&amp;gt;
+                &amp;lt;Data fileName=&amp;quot;::1:9418-&amp;gt;::1:58226-0&amp;quot;/&amp;gt;
+            &amp;lt;/Action&amp;gt;
+            &amp;lt;!-- receive bytes --&amp;gt;
+            &amp;lt;Action type=&amp;quot;input&amp;quot;&amp;gt;
+                &amp;lt;DataModel ref=&amp;quot;TheDataModel&amp;quot;/&amp;gt;
+            &amp;lt;/Action&amp;gt;
+            &amp;lt;!-- send bytes --&amp;gt;
+            &amp;lt;Action type=&amp;quot;output&amp;quot;&amp;gt;
+                &amp;lt;DataModel ref=&amp;quot;TheDataModel&amp;quot;/&amp;gt;
+                &amp;lt;!-- Change this to be whatever port your git client was on --&amp;gt;
+                &amp;lt;Data fileName=&amp;quot;::1:9418-&amp;gt;::1:58226-1&amp;quot;/&amp;gt;
+            &amp;lt;/Action&amp;gt;
+        &amp;lt;/State&amp;gt;
+    &amp;lt;/StateModel&amp;gt;
+    &amp;lt;Agent name=&amp;quot;LinAgent&amp;quot;&amp;gt;
+        &amp;lt;!-- Register for core file notifications. --&amp;gt;
+        &amp;lt;Monitor class=&amp;quot;LinuxDebugger&amp;quot;&amp;gt;
+            &amp;lt;!-- This is the program we&#39;re going to run inside of the debugger --&amp;gt;
+            &amp;lt;Param name=&amp;quot;Executable&amp;quot; value=&amp;quot;git&amp;quot;/&amp;gt;
+            &amp;lt;!-- These are arguments to the executable we want to run --&amp;gt;
+            &amp;lt;Param name=&amp;quot;Arguments&amp;quot; value=&amp;quot;clone git://127.0.0.1/testrepo.git&amp;quot;/&amp;gt;
+            &amp;lt;!-- This parameter will cause the monitor to terminate the process
+								 once the CPU usage reaches zero. --&amp;gt;
+            &amp;lt;Param name=&amp;quot;CpuKill&amp;quot; value=&amp;quot;true&amp;quot;/&amp;gt;
+        &amp;lt;/Monitor&amp;gt;
+        &amp;lt;Monitor class=&amp;quot;CleanupFolder&amp;quot;&amp;gt;
+            &amp;lt;Param name=&amp;quot;Folder&amp;quot; value=&amp;quot;testrepo&amp;quot;/&amp;gt;
+        &amp;lt;/Monitor&amp;gt;
+    &amp;lt;/Agent&amp;gt;
+    &amp;lt;Test name=&amp;quot;Default&amp;quot;&amp;gt;
+        &amp;lt;Agent ref=&amp;quot;LinAgent&amp;quot; platform=&amp;quot;linux&amp;quot;/&amp;gt;
+        &amp;lt;StateModel ref=&amp;quot;TheState&amp;quot;/&amp;gt;
+        &amp;lt;Publisher class=&amp;quot;TcpListener&amp;quot;&amp;gt;
+            &amp;lt;Param name=&amp;quot;Interface&amp;quot; value=&amp;quot;127.0.0.1&amp;quot;/&amp;gt;
+            &amp;lt;Param name=&amp;quot;Port&amp;quot; value=&amp;quot;9418&amp;quot;/&amp;gt;
+        &amp;lt;/Publisher&amp;gt;
+        &amp;lt;Strategy class=&amp;quot;Random&amp;quot;/&amp;gt;
+        &amp;lt;Logger class=&amp;quot;Filesystem&amp;quot;&amp;gt;
+            &amp;lt;Param name=&amp;quot;Path&amp;quot; value=&amp;quot;logs&amp;quot;/&amp;gt;
+        &amp;lt;/Logger&amp;gt;
+    &amp;lt;/Test&amp;gt;
+&amp;lt;/Peach&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Your git client used a different port to connect to the git server when we did
+the capture than mine did. When you copy the xml file you will have to change
+the values as indicated with comments so that peach knows what files to use.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# Change to the correct files
+vim git.xml
+peach git.xml
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Peach is fuzzing the git protocol now! Good job you rock!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
