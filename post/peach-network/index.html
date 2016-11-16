@@ -1,0 +1,505 @@
+    <!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="author" content="John Andersen">
+		
+		<meta name="generator" content="Hugo 0.18-DEV" />
+		<title>Fuzzing network applications with peach &middot; John Andersen (pdxjohnny)</title>
+		<link rel="shortcut icon" href="https://pdxjohnny.github.io/images/favicon.ico">
+		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/style.css">
+		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/highlight.css">
+		
+
+		
+		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/monosocialiconsfont.css">
+		
+
+		
+		<link href="https://pdxjohnny.github.io/index.xml" rel="alternate" type="application/rss+xml" title="John Andersen (pdxjohnny)" />
+		
+	</head>
+
+    <body>
+       <nav class="main-nav">
+	
+	
+		<a href='https://pdxjohnny.github.io/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+		<a href='https://pdxjohnny.github.io/about'>About</a>
+	
+
+	
+	<a class="cta" href="https://pdxjohnny.github.io/index.xml">Subscribe</a>
+	
+</nav>
+
+        <section id="wrapper">
+            <article class="post">
+                <header>
+                    <h1>Fuzzing network applications with peach</h1>
+                    <h2 class="headline">
+                    August 10, 2016 
+                    <br>
+                    
+                    </h2>
+                </header>
+                <section id="post-body">
+                    
+
+<p>So you want to fuzz network applications with peach eh? Well you&rsquo;ve come to the
+right place. This is a tutorial on how to get you fuzzing TCP applications,
+without TLS/SSL enabled. If you want to fuzz UDP or an application which only
+communicates via TLS/SSL then this is a great place for you to start, however it
+will not answer all your questions. I will point you in the right direction at
+the end of this post.</p>
+
+<p>The first step in fuzzing is to understand the structure of the protocol. It
+often helps to have an example of this structure. Therefore we will be
+capturing the data of our target and simply playing it back. If you were to
+spend more time, which you should, then you would make data models in peach
+which contain specific fields rather than the blob we will be using.</p>
+
+<p>The two most well known ways of getting network traffic are tcpdump and
+wireshark. Peach can use input from a file for the data model and mutate it. We
+are going to use a tiny tool I wrote to capture the conversations back and
+forth rather than telling you to open tcpdump / wireshark and copy paste to a
+file. If you would rather do that be my guest.</p>
+
+<h2 id="enter-convo-capture">Enter convo-capture</h2>
+
+<p>This saves the TCP conversation to files. Give it the port and host it needs to
+be monitoring. This is especially useful for fuzzing with peach on TCP based
+programs so that you don&rsquo;t have to go into wireshark to capture then copy paste
+the data from each sequence of packets. This will take all packets and put them
+in a file until the other endpoint sends data. Then it will increment the
+number on the exchange and write the data to that exchanges file.</p>
+
+<p>The binary has been built and included in the gist for your convenience.</p>
+
+<blockquote>
+<p>By no means do I condone putting binaries in git repos but I know not
+everyone has the go toolchain. You need libpcap and libpthread to run it.</p>
+</blockquote>
+
+<p>Building will use sudo because it will <code>set_cap_raw</code> on convo-capture. If you
+don&rsquo;t want to set this then you have to run convo-capture as root.</p>
+
+<pre><code class="language-bash">git clone https://gist.github.com/pdxjohnny/e2d1df77e81f07254da192fe1bc568a0 convo-capture
+cd !$
+./build.sh
+</code></pre>
+
+<p>Now you can move it to bin if you want or run it prepended with ./ from the
+directory you built it.</p>
+
+<pre><code class="language-bash">sudo mv convo-capture /usr/bin/convo-capture
+</code></pre>
+
+<blockquote>
+<p>Personally I like to put things in ~/.local/bin/ but do as you will</p>
+</blockquote>
+
+<p>We are now ready to capture packets. Keep in mind that convo-capture will not
+write over files that you have previously captured if they are in the directory
+you are working in. Be sure to delete files from previous captures or change to
+a new directory.</p>
+
+<p>Let&rsquo;s try to capture HTTP traffic using curl and python3&rsquo;s http.server
+(SimpleHTTPServer in python2). First we need to ssh to another computer and
+start an HTTP server or we can start one on our local machine. If you start one
+on your machine then everywhere you see example.com replace it with localhost
+and add <code>-i lo</code> to convo-capture for capturing on the loopback interface.</p>
+
+<pre><code class="language-bash">[pdxjohnny@pdxjohnny convo-capture]$ ssh example.com
+[pdxjohnny@example.com ~]$ python3 -m http.server 4444
+</code></pre>
+
+<p>Now that we have a HTTP server running lets start convo-capture.</p>
+
+<pre><code class="language-bash"># For localhost add -i lo
+# convo-capture -p 4444 -ip localhost -i lo -v
+[pdxjohnny@pdxjohnny convo-capture]$ convo-capture -p 4444 -ip example.com -v
+Capturing TCP port 4444 for host example.com
+</code></pre>
+
+<p>Ok great we are now capturing all traffic going to example.com on port 4444 from
+our computer and from example.com port 4444 back to our computer.
+Now we just need to use curl to generate a request we can capture.</p>
+
+<pre><code class="language-bash">curl -v http://example.com:4444/file
+</code></pre>
+
+<p>Request sent! Look back at the session running convo-capture, you should see
+that the output you observed in curl has been captured (expect for the &lt; and &gt;
+left of the headers, curl adds those).</p>
+
+<pre><code class="language-log">[pdxjohnny@pdxjohnny convo-capture]$ convo-capture -p 4444 -ip example.com -v
+Capturing TCP port 4444 for host example.com
+GET /file HTTP/1.1
+Host: example.com:4444
+User-Agent: curl/7.47.0
+Accept: */*
+
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.4.2
+Date: Wed, 10 Aug 2016 16:38:42 GMT
+Content-type: text/plain
+Content-Length: 514
+Last-Modified: Tue, 26 Jul 2016 14:43:05 GMT
+
+Yo this is the file
+</code></pre>
+
+<p>Now you can ctrl-c to stop the capture. As you can see we captured the
+conversation from our local machine to the remote host and the response the
+remote host sent us. If you do an ls you will also see the files that were
+created by this capture.</p>
+
+<pre><code class="language-log">[pdxjohnny@pdxjohnny convo-capture]$ ls -lAF
+total 5752
+... Aug 10 09:34 10.7.202.149-&gt;10.7.202.78-0
+... Aug 10 09:34 10.7.202.78-&gt;10.7.202.149-0
+... Aug 10 08:35 build.sh*
+... Aug 10 09:17 convo-capture*
+... Aug 10 09:33 .git/
+... Aug 10 09:16 .gitignore
+... Aug 10 09:15 main.go
+... Aug 10 09:58 README.md
+</code></pre>
+
+<p>cating the files will make convo-capture&rsquo;s usefulness apparent.</p>
+
+<pre><code class="language-log">[pdxjohnny@pdxjohnny convo-capture]$ cat 10.7.202.149-&gt;10.7.202.78-0
+GET /file HTTP/1.1
+Host: example.com:4444
+User-Agent: curl/7.47.0
+Accept: */*
+
+[pdxjohnny@pdxjohnny convo-capture]$ cat 10.7.202.78-&gt;10.7.202.149-0
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.4.2
+Date: Wed, 10 Aug 2016 16:38:42 GMT
+Content-type: text/plain
+Content-Length: 514
+Last-Modified: Tue, 26 Jul 2016 14:43:05 GMT
+
+Yo this is the file
+</code></pre>
+
+<p>As you can see it has assembled the packets into files based on the order they
+were sent in. For me the second file, the servers reply, was two packets.
+convo-capture saw the two packets in a row from the server to client and said
+ok this is all part of one message I&rsquo;m going to save it to a file as such. A
+message is a continuous sequence of packets ended when the other side starts
+sending a message. The more messages that are collected the more files you will
+see after you kill convo-capture.</p>
+
+<p>There was only one back and forth so they are both 0 in the sequence. If you
+were to have ran curl twice with convo-capture running then you would see the
+contents of 0 repeated in 1.</p>
+
+<p>This is very useful for fuzzing with peach. Peach allows us to order our call
+and response to the target program. For example say you want to fuzz something
+like git. git is not a simple call and response. It has an exchange of call,
+response, call, response for a clone. Let&rsquo;s walk through how you would use
+convo-capture to fuzz the git protocol with peach.</p>
+
+<h2 id="capturing-the-git-protocol">Capturing the git protocol</h2>
+
+<p><a href="https://asciinema.org/a/7xd0u4u0vfv7n7s7gq4f0zdg2"><img src="https://asciinema.org/a/7xd0u4u0vfv7n7s7gq4f0zdg2.png" alt="asciicast" /></a></p>
+
+<blockquote>
+<p>This video goes shows the how to capture the data involved in a git clone
+over the git protocol. Use it as a reference if you are having trouble with
+the steps below.</p>
+</blockquote>
+
+<p>Let&rsquo;s take a stroll on over to tmp so we don&rsquo;t create a bunch of useless files.
+We&rsquo;ll make a directory there to play in.</p>
+
+<pre><code class="language-bash">mkdir /tmp/demo
+cd /tmp/demo
+</code></pre>
+
+<p>Make a few directories so nothing writes over each other. Then well make a git
+repo and populate it with some files.</p>
+
+<pre><code class="language-bash">mkdir clonedir capture
+mkdir testrepo
+cd testrepo
+cat &lt;&lt; EOF &gt; README.md
+This is a super cool test repo
+EOF
+git init
+git add -A
+git commit -sam 'Added README.md'
+cd ..
+# You should now be back in /tmp/demo
+</code></pre>
+
+<p>We have our testrepo, now lets create a bare copy of it to be served by <a href="https://git-scm.com/book/en/v1/Git-on-the-Server-Git-Daemon">git
+daemon</a>. This requires that we make the <code>git-daemon-export-ok</code> file
+as well. Then we will start the git server.</p>
+
+<pre><code class="language-bash">git clone --bare testrepo testrepo.git
+touch testrepo.git/git-daemon-export-ok
+git daemon --reuseaddr --base-path=$PWD $PWD
+# PWD is faster than typing /tmp/demo
+</code></pre>
+
+<p>Great! The git server is up! We can look up what port it is running on, but
+if perhaps we were fuzzing something we didn&rsquo;t know we would have to find out.</p>
+
+<pre><code class="language-bash"># Apparently netstat is depricated, so let's use ss
+ss -ltnp | grep git
+</code></pre>
+
+<p>Alright its port 9418. In another shell go to the capture directory and start
+convo-capture.</p>
+
+<pre><code class="language-bash">cd /tmp/demo/capture
+convo-capture -p 9418 -i lo
+</code></pre>
+
+<p>Capture is running, git server is up, all that&rsquo;s left is to go to clonedir and
+watch the magic happen.</p>
+
+<pre><code class="language-bash">cd /tmp/demo/clonedir
+git clone git://localhost/testrepo.git
+</code></pre>
+
+<p>Now switch back to the shell running convo-capture and hit it will ctrl-c. You
+should see four files in the capture directory. We are going to fuzz the git
+client so right now we are interested in the files which go from port 9418 to
+some other port.</p>
+
+<h2 id="using-our-captured-data-to-fuzz-with-peach">Using our captured data to fuzz with peach</h2>
+
+<p>You should usually test against the master branch or the latest version of
+whatever you are fuzzing. You don&rsquo;t want to waste time finding something which
+has already been fixed. This is why we are going to build git from source. Of
+course you don&rsquo;t have to do this. But if you have never built something from
+source it would be good practice.</p>
+
+<p><a href="https://asciinema.org/a/82390"><img src="https://asciinema.org/a/82390.png" alt="asciicast" /></a></p>
+
+<blockquote>
+<p>This video shows the peach process. You probably want to skip past the
+part were we run make on git.</p>
+</blockquote>
+
+<p>Now that we know what the git server is sending to the client we could either
+fuzz the server or the client. The client is easy because it exits after
+cloning were as the server stays up to serve requests.</p>
+
+<p>We are going to compile git from source so we need to download its
+dependencies.</p>
+
+<pre><code class="language-bash">sudo apt-get -y install libcurl4-gnutls-dev libexpat1-dev gettext \
+  libz-dev libssl-dev \
+  || sudo yum install curl-devel expat-devel gettext-devel \
+  openssl-devel perl-devel zlib-devel
+</code></pre>
+
+<p>Now we are going to clone git build it and install it.</p>
+
+<pre><code class="language-bash">mkdir -p /tmp/demo/
+cd /tmp/demo/
+git clone --depth=1 https://github.com/git/git
+cd /tmp/demo/git/
+# I found that the latest git doesn't cooperate unless I install it
+sudo make install
+git --version
+</code></pre>
+
+<p>Git is installed, now lets copy our relevant captures to a testing directory.
+Here we clone the repo for this post and copy the git.xml file out of it. But
+you could of course make your own or modify the one here.</p>
+
+<pre><code class="language-bash">cd /tmp/demo/
+mkdir gitfuzzy
+cd gitfuzzy
+cp /tmp/demo/capture/\:\:1\:9418-\&gt;* ./
+git clone https://gist.github.com/pdxjohnny/e2d1df77e81f07254da192fe1bc568a0 t
+cp t/git.xml ./
+</code></pre>
+
+<p><code>git.xml</code></p>
+
+<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;Peach&gt;
+    &lt;DataModel name=&quot;TheDataModel&quot;&gt;
+        &lt;Blob/&gt;
+    &lt;/DataModel&gt;
+    &lt;StateModel name=&quot;TheState&quot; initialState=&quot;Initial&quot;&gt;
+        &lt;State name=&quot;Initial&quot;&gt;
+            &lt;Action type=&quot;accept&quot;/&gt;
+            &lt;!-- receive bytes --&gt;
+            &lt;Action type=&quot;input&quot;&gt;
+                &lt;DataModel ref=&quot;TheDataModel&quot;/&gt;
+            &lt;/Action&gt;
+            &lt;!-- send bytes --&gt;
+            &lt;Action type=&quot;output&quot;&gt;
+                &lt;DataModel ref=&quot;TheDataModel&quot;/&gt;
+                &lt;!-- Change this to be whatever port your git client was on --&gt;
+                &lt;Data fileName=&quot;::1:9418-&gt;::1:58226-0&quot;/&gt;
+            &lt;/Action&gt;
+            &lt;!-- receive bytes --&gt;
+            &lt;Action type=&quot;input&quot;&gt;
+                &lt;DataModel ref=&quot;TheDataModel&quot;/&gt;
+            &lt;/Action&gt;
+            &lt;!-- send bytes --&gt;
+            &lt;Action type=&quot;output&quot;&gt;
+                &lt;DataModel ref=&quot;TheDataModel&quot;/&gt;
+                &lt;!-- Change this to be whatever port your git client was on --&gt;
+                &lt;Data fileName=&quot;::1:9418-&gt;::1:58226-1&quot;/&gt;
+            &lt;/Action&gt;
+        &lt;/State&gt;
+    &lt;/StateModel&gt;
+    &lt;Agent name=&quot;LinAgent&quot;&gt;
+        &lt;!-- Register for core file notifications. --&gt;
+        &lt;Monitor class=&quot;LinuxDebugger&quot;&gt;
+            &lt;!-- This is the program we're going to run inside of the debugger --&gt;
+            &lt;Param name=&quot;Executable&quot; value=&quot;git&quot;/&gt;
+            &lt;!-- These are arguments to the executable we want to run --&gt;
+            &lt;Param name=&quot;Arguments&quot; value=&quot;clone git://127.0.0.1/testrepo.git&quot;/&gt;
+            &lt;!-- This parameter will cause the monitor to terminate the process
+								 once the CPU usage reaches zero. --&gt;
+            &lt;Param name=&quot;CpuKill&quot; value=&quot;true&quot;/&gt;
+        &lt;/Monitor&gt;
+        &lt;Monitor class=&quot;CleanupFolder&quot;&gt;
+            &lt;Param name=&quot;Folder&quot; value=&quot;testrepo&quot;/&gt;
+        &lt;/Monitor&gt;
+    &lt;/Agent&gt;
+    &lt;Test name=&quot;Default&quot;&gt;
+        &lt;Agent ref=&quot;LinAgent&quot; platform=&quot;linux&quot;/&gt;
+        &lt;StateModel ref=&quot;TheState&quot;/&gt;
+        &lt;Publisher class=&quot;TcpListener&quot;&gt;
+            &lt;Param name=&quot;Interface&quot; value=&quot;127.0.0.1&quot;/&gt;
+            &lt;Param name=&quot;Port&quot; value=&quot;9418&quot;/&gt;
+        &lt;/Publisher&gt;
+        &lt;Strategy class=&quot;Random&quot;/&gt;
+        &lt;Logger class=&quot;Filesystem&quot;&gt;
+            &lt;Param name=&quot;Path&quot; value=&quot;logs&quot;/&gt;
+        &lt;/Logger&gt;
+    &lt;/Test&gt;
+&lt;/Peach&gt;
+</code></pre>
+
+<p>Your git client used a different port to connect to the git server when we did
+the capture than mine did. When you copy the xml file you will have to change
+the values as indicated with comments so that peach knows what files to use.</p>
+
+<pre><code class="language-bash"># Change to the correct files
+vim git.xml
+peach git.xml
+</code></pre>
+
+<p>Peach is fuzzing the git protocol now! Good job you rock!</p>
+
+                </section>
+            </article>
+            <footer id="post-meta" class="clearfix">
+                <a href="https://twitter.com/pdxjohnny">
+                        <img class="avatar" src="https://pdxjohnny.github.io/images/avatar.png">
+                        <div>
+                            <span class="dark">John Andersen</span>
+                            <span>up in yo kernel</span>
+                        </div>
+                    </a>
+                <section id="sharing">
+                    <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fpdxjohnny.github.io%2fpost%2fpeach-network%2f - Fuzzing%20network%20applications%20with%20peach by @pdxjohnny"><span class="icon-twitter"> Tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+                </section>
+            </footer>
+
+            
+
+            <ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+    
+    
+        
+        <li>
+            <a href="https://pdxjohnny.github.io/post/3-resistor-bias-nmos/">3 Resistor Bias Circuit with NMOS Transistor<aside class="dates">Nov 11</aside></a>
+        </li>
+        
+   
+    
+        
+   
+    
+        
+        <li>
+            <a href="https://pdxjohnny.github.io/post/arm-qemu/">ARM workflow with qemu and arm-none-eabi<aside class="dates">Nov 9</aside></a>
+        </li>
+        
+   
+    
+        
+        <li>
+            <a href="https://pdxjohnny.github.io/post/trinity-fuzzer-android/">Trinity fuzzer on Android (on Intel)<aside class="dates">Oct 17</aside></a>
+        </li>
+        
+   
+    
+        
+        <li>
+            <a href="https://pdxjohnny.github.io/post/peach-network/">Fuzzing network applications with peach<aside class="dates">Aug 10</aside></a>
+        </li>
+        
+   
+</ul>
+            <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    
+    <a class="symbol" href="https://www.github.com/pdxjohnny">
+        circlegithub
+    </a>
+    
+    <a class="symbol" href="https://www.twitter.com/pdxjohnny">
+        circletwitterbird
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2016 John Andersen
+    
+    </p>
+</footer>
+
+        </section>
+
+        <script src="https://pdxjohnny.github.io/js/jquery.min.js"></script>
+<script src="https://pdxjohnny.github.io/js/main.js"></script>
+<script src="https://pdxjohnny.github.io/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+
+    </body>
+</html>
