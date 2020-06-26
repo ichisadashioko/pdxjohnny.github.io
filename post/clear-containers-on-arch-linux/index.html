@@ -1,0 +1,39 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="John Andersen"><meta name=generator content="Hugo 0.59.1"><title>Clear Containers on Arch Linux &middot; John Andersen (pdxjohnny)</title><link rel="shortcut icon" href=https://pdxjohnny.github.io/images/favicon.ico><link rel=stylesheet href=https://pdxjohnny.github.io/css/style.css><link rel=stylesheet href=https://pdxjohnny.github.io/css/highlight.css><link rel=stylesheet href=https://pdxjohnny.github.io/css/monosocialiconsfont.css><link href=https://pdxjohnny.github.io/index.xml rel=alternate type=application/rss+xml title="John Andersen (pdxjohnny)"></head><body><nav class=main-nav><a href=https://pdxjohnny.github.io/><span class=arrow>←</span>Home</a>
+<a href=https://pdxjohnny.github.io/about>About</a>
+<a class=cta href=https://pdxjohnny.github.io/index.xml>Subscribe</a></nav><section id=wrapper><article class=post><header><h1>Clear Containers on Arch Linux</h1><h2 class=headline>January 17, 2017<br></h2></header><section id=post-body><p>So you want the security of a virtual machine but the ease of use of docker and
+containers? Well Clear Containers is the solution for you my friend. Here I am
+going to show you how to install and configure the Clear Containers runtime on
+your Arch Linux host.</p><p>I have created to packages in AUR to assit you in building the packages you
+need.</p><h3 id=qemu-lite-package>qemu-lite package</h3><p><a href=https://github.com/01org/qemu-lite>qemu-lite</a> provides virtualisation for Clear Containers. It&rsquo;s a fork of qemu
+that has a new machine type, pc-lite. Which is a traditional x86_64 machine
+with a lot of things striped out. This lets them turn off a lot of things in
+the Linux kernel config and thus increases the speed at which the VM (Container
+in this case) is run. This also decreases time it takes the virtualised
+container to start up.</p><p>Lets build qemu-lite, which will replace the hosts qemu package. We just need
+to clone the package from the AUR, build it with makepkg, and install it with
+pacman.</p><p>pacman will complain about qemu-arch-extra and qemu-launcher needing the
+regular qemu so if you have those installed you need to remove them. They will
+not work with qemu-lite.</p><pre><code># Download the one I built for you
+wget https://github.com/pdxjohnny/pdxjohnny.github.io/releases/download/CCARCH/qemu-lite-2.7.1-1-x86_64.pkg.tar.xz
+# Or build it yourself!
+git clone https://aur.archlinux.org/qemu-lite.git
+cd qemu-lite
+makepkg -cs
+# Then install
+sudo pacman -U qemu-lite-2.7.1-1-x86_64.pkg.tar.xz
+</code></pre><h3 id=cc-oci-runtime-package>cc-oci-runtime package</h3><p>The <a href=https://github.com/01org/cc-oci-runtime>Clear Containers runtime</a> is an alternative to runc. You can have some
+containers running runc and some running cor (Clear Containers runtime), or all
+one or the other. It provides the management of qemu-lite so you can use these
+VMs as if they were containers. Basically its where the magic happens.</p><pre><code># Download the one I built for you
+wget https://github.com/pdxjohnny/pdxjohnny.github.io/releases/download/CCARCH/cc-oci-runtime-2.1.0-1-x86_64.pkg.tar.xz
+# Or build it yourself!
+git clone https://aur.archlinux.org/cc-oci-runtime.git
+cd qemu-lite
+makepkg -cs
+# Then install
+sudo pacman -U cc-oci-runtime-2.1.0-1-x86_64.pkg.tar.xz
+</code></pre><h3 id=configuration>Configuration</h3><p>Now we need to change how the docker deamon is run so that it knows about the
+runtime he have just installed.</p></section></article><footer id=post-meta class=clearfix><a href=https://twitter.com/pdxjohnny><img class=avatar src=https://pdxjohnny.github.io/images/avatar.png><div><span class=dark>John Andersen</span>
+<span>up in yo kernel</span></div></a><section id=sharing><a class=twitter href="https://twitter.com/intent/tweet?text=https%3a%2f%2fpdxjohnny.github.io%2fpost%2fclear-containers-on-arch-linux%2f - Clear%20Containers%20on%20Arch%20Linux by @pdxjohnny"><span class=icon-twitter>Tweet</span></a>
+<a class=facebook href=# onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),'facebook-share-dialog','width=626,height=436');return false;"><span class=icon-facebook-rect>Share</span></a></section></footer><ul id=post-list class="archive readmore"><h3>Read more</h3><li><a href=https://pdxjohnny.github.io/>John Andersen (pdxjohnny)<aside class=dates>Jun 25</aside></a></li><li><a href=https://pdxjohnny.github.io/post/dev-environment/>Personal Development Environment<aside class=dates>Jun 25</aside></a></li><li><a href=https://pdxjohnny.github.io/post/>Posts<aside class=dates>Jun 25</aside></a></li><li><a href=https://pdxjohnny.github.io/post/clear-containers-on-arch-linux/>Clear Containers on Arch Linux<aside class=dates>Jan 17</aside></a></li><li><a href=https://pdxjohnny.github.io/post/3-resistor-bias-nmos/>3 Resistor Bias Circuit with NMOS Transistor<aside class=dates>Nov 11</aside></a></li><li><a href=https://pdxjohnny.github.io/post/arm-qemu/>ARM workflow with qemu and arm-none-eabi<aside class=dates>Nov 9</aside></a></li><li><a href=https://pdxjohnny.github.io/post/trinity-fuzzer-android/>Trinity fuzzer on Android (on Intel)<aside class=dates>Oct 17</aside></a></li><li><a href=https://pdxjohnny.github.io/post/peach-network/>Fuzzing network applications with peach<aside class=dates>Aug 10</aside></a></li><li><a href=https://pdxjohnny.github.io/categories/>Categories<aside class=dates>Jan 1</aside></a></li></ul><footer id=footer><div id=social><a class=symbol href=https://www.github.com/pdxjohnny>circlegithub</a>
+<a class=symbol href=https://www.twitter.com/pdxjohnny>circletwitterbird</a></div><p class=small>© Copyright 2017 John Andersen</p></footer></section><script src=https://pdxjohnny.github.io/js/jquery.min.js></script><script src=https://pdxjohnny.github.io/js/main.js></script><script src=https://pdxjohnny.github.io/js/highlight.js></script><script>hljs.initHighlightingOnLoad();</script></body></html>

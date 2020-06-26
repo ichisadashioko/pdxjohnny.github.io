@@ -1,261 +1,39 @@
-    <!DOCTYPE html>
-<html lang="en-us">
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="author" content="John Andersen">
-		
-		<meta name="generator" content="Hugo 0.18-DEV" />
-		<title>Trinity fuzzer on Android (on Intel) &middot; John Andersen (pdxjohnny)</title>
-		<link rel="shortcut icon" href="https://pdxjohnny.github.io/images/favicon.ico">
-		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/style.css">
-		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/highlight.css">
-		
-
-		
-		<link rel="stylesheet" href="https://pdxjohnny.github.io/css/monosocialiconsfont.css">
-		
-
-		
-		<link href="https://pdxjohnny.github.io/index.xml" rel="alternate" type="application/rss+xml" title="John Andersen (pdxjohnny)" />
-		
-	</head>
-
-    <body>
-       <nav class="main-nav">
-	
-	
-		<a href='https://pdxjohnny.github.io/'> <span class="arrow">←</span>Home</a>
-	
-
-	
-		<a href='https://pdxjohnny.github.io/about'>About</a>
-	
-
-	
-	<a class="cta" href="https://pdxjohnny.github.io/index.xml">Subscribe</a>
-	
-</nav>
-
-        <section id="wrapper">
-            <article class="post">
-                <header>
-                    <h1>Trinity fuzzer on Android (on Intel)</h1>
-                    <h2 class="headline">
-                    October 17, 2016 
-                    <br>
-                    
-                    </h2>
-                </header>
-                <section id="post-body">
-                    
-
-<h2 id="step-1-clone-trinity">Step 1 - Clone trinity</h2>
-
-<p>Grab the source for trinity. We need to make some minor modifications.</p>
-
-<blockquote>
-<p>At the time of writing this the latest commit on master was
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge,chrome=1"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=author content="John Andersen"><meta name=generator content="Hugo 0.59.1"><title>Trinity fuzzer on Android (on Intel) &middot; John Andersen (pdxjohnny)</title><link rel="shortcut icon" href=https://pdxjohnny.github.io/images/favicon.ico><link rel=stylesheet href=https://pdxjohnny.github.io/css/style.css><link rel=stylesheet href=https://pdxjohnny.github.io/css/highlight.css><link rel=stylesheet href=https://pdxjohnny.github.io/css/monosocialiconsfont.css><link href=https://pdxjohnny.github.io/index.xml rel=alternate type=application/rss+xml title="John Andersen (pdxjohnny)"></head><body><nav class=main-nav><a href=https://pdxjohnny.github.io/><span class=arrow>←</span>Home</a>
+<a href=https://pdxjohnny.github.io/about>About</a>
+<a class=cta href=https://pdxjohnny.github.io/index.xml>Subscribe</a></nav><section id=wrapper><article class=post><header><h1>Trinity fuzzer on Android (on Intel)</h1><h2 class=headline>October 17, 2016<br></h2></header><section id=post-body><h2 id=step-1-clone-trinity>Step 1 - Clone trinity</h2><p>Grab the source for trinity. We need to make some minor modifications.</p><blockquote><p>At the time of writing this the latest commit on master was
 3a0e33d1db3214503316840ecfb90075d60ab3be adapt instructions as necessary. The
 basic idea of static linking and disabling of feature&rsquo;s you don&rsquo;t need is
-still the same.</p>
-</blockquote>
-
-<pre><code>git clone https://github.com/kernelslacker/trinity
+still the same.</p></blockquote><pre><code>git clone https://github.com/kernelslacker/trinity
 cd trinity
 ./configure
-</code></pre>
-
-<h2 id="step-2-32-bit-and-static-compilation">Step 2 - 32 bit and static compilation</h2>
-
-<p>Edit the make file and add <code>-m32</code> to any line containing <code>CFLAGS</code> and add
+</code></pre><h2 id=step-2-32-bit-and-static-compilation>Step 2 - 32 bit and static compilation</h2><p>Edit the make file and add <code>-m32</code> to any line containing <code>CFLAGS</code> and add
 <code>-static</code> to any line containing <code>LDFLAGS</code>. Just one line not all of them that
-say LD/CFLAGS. For example.</p>
-
-<pre><code>CFLAGS += -Wall -Wextra -g -O2 -I. -Iinclude/ -Wimplicit -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D__linux__
-</code></pre>
-
-<p>Becomes</p>
-
-<pre><code>CFLAGS += -Wall -Wextra -g -O2 -I. -Iinclude/ -Wimplicit -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D__linux__ -m32
-</code></pre>
-
-<p>And</p>
-
-<pre><code>LDFLAGS += -rdynamic
-</code></pre>
-
-<p>Becomes</p>
-
-<pre><code>LDFLAGS += -rdynamic -static
-</code></pre>
-
-<p>Just change two lines and you&rsquo;re done.</p>
-
-<h2 id="step-3-fix-syscalls-send-c">Step 3 - Fix syscalls/send.c</h2>
-
-<p>I found that gcc 6.2.1 said that this is an error so it wouldn&rsquo;t let me
+say LD/CFLAGS. For example.</p><pre><code>CFLAGS += -Wall -Wextra -g -O2 -I. -Iinclude/ -Wimplicit -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D__linux__
+</code></pre><p>Becomes</p><pre><code>CFLAGS += -Wall -Wextra -g -O2 -I. -Iinclude/ -Wimplicit -D_FORTIFY_SOURCE=2 -D_GNU_SOURCE -D__linux__ -m32
+</code></pre><p>And</p><pre><code>LDFLAGS += -rdynamic
+</code></pre><p>Becomes</p><pre><code>LDFLAGS += -rdynamic -static
+</code></pre><p>Just change two lines and you&rsquo;re done.</p><h2 id=step-3-fix-syscalls-send-c>Step 3 - Fix syscalls/send.c</h2><p>I found that gcc 6.2.1 said that this is an error so it wouldn&rsquo;t let me
 compile without this typecast. I haven&rsquo;t noticed anything strange by doing this
-so I assume everything still works.</p>
-
-<p>Change the line that reads</p>
-
-<pre><code class="language-c">proto-&gt;gen_packet(&amp;si-&gt;triplet, ptr, &amp;rec-&gt;a3);
-</code></pre>
-
-<p>To</p>
-
-<pre><code class="language-c">proto-&gt;gen_packet(&amp;si-&gt;triplet, ptr, (size_t *) &amp;rec-&gt;a3);
-</code></pre>
-
-<p>And you should now make it past that compilation error.</p>
-
-<blockquote>
-<p>syscalls/send.c:33:41: error: passing argument 3 of ‘proto-&gt;gen_packet’ from
-incompatible pointer type [-Werror=incompatible-pointer-types]</p>
-</blockquote>
-
-<h2 id="step-4-edit-config-h">Step 4 - Edit config.h</h2>
-
-<p>Take out anything you don&rsquo;t need or can&rsquo;t compile from <code>config.h</code>. For instance
+so I assume everything still works.</p><p>Change the line that reads</p><pre><code class=language-c>proto-&gt;gen_packet(&amp;si-&gt;triplet, ptr, &amp;rec-&gt;a3);
+</code></pre><p>To</p><pre><code class=language-c>proto-&gt;gen_packet(&amp;si-&gt;triplet, ptr, (size_t *) &amp;rec-&gt;a3);
+</code></pre><p>And you should now make it past that compilation error.</p><blockquote><p>syscalls/send.c:33:41: error: passing argument 3 of ‘proto-&gt;gen_packet’ from
+incompatible pointer type [-Werror=incompatible-pointer-types]</p></blockquote><h2 id=step-4-edit-config-h>Step 4 - Edit config.h</h2><p>Take out anything you don&rsquo;t need or can&rsquo;t compile from <code>config.h</code>. For instance
 Android recommends building on Ubuntu 16.04 so we were on a Ubuntu 16.04.1 LTS
 machine which at the time of writing is Linux 4.4ish. So we couldn&rsquo;t compile
 <code>fds/bpf.c</code> because the kernel headers didn&rsquo;t contain the right version of
-<code>linux/bpf.h</code> (bpf_addr was missing some members).</p>
-
-<p>The solution is to comment out <code>USE_BPF</code> from <code>config.h</code>.</p>
-
-<pre><code class="language-c">#define USE_BPF 1
-</code></pre>
-
-<p>After</p>
-
-<pre><code class="language-c">// #define USE_BPF 1
-</code></pre>
-
-<h2 id="step-5-verify">Step 5 - Verify</h2>
-
-<p>Before we push to the device make sure it has a chance of working. This means
+<code>linux/bpf.h</code> (bpf_addr was missing some members).</p><p>The solution is to comment out <code>USE_BPF</code> from <code>config.h</code>.</p><pre><code class=language-c>#define USE_BPF 1
+</code></pre><p>After</p><pre><code class=language-c>// #define USE_BPF 1
+</code></pre><h2 id=step-5-verify>Step 5 - Verify</h2><p>Before we push to the device make sure it has a chance of working. This means
 that it will be 32-bit staticly linked. For the edits we just made to the
-commit refernced at the top of this doc file reports the following.</p>
-
-<pre><code>file trinity
+commit refernced at the top of this doc file reports the following.</p><pre><code>file trinity
 trinity: ELF 32-bit LSB executable, Intel 80386, version 1 (GNU/Linux), statically linked, for GNU/Linux 2.6.32, BuildID[sha1]=e533cc2db1db19c044bdbfa566c72299df7eefc2, not stripped
-</code></pre>
-
-<h2 id="step-6-push-and-run">Step 6 - Push and Run</h2>
-
-<p>Put in on the device and run from <code>/sdcard</code> folder.</p>
-
-<pre><code>adb root
+</code></pre><h2 id=step-6-push-and-run>Step 6 - Push and Run</h2><p>Put in on the device and run from <code>/sdcard</code> folder.</p><pre><code>adb root
 adb remount rw
 adb disable-verity
 adb reboot
 adb push trinity /data/trinity
 adb shell 'cd /sdcard &amp;&amp; /data/trinity --dangerous -V /dev/ 2&gt;&amp;1' | tee trinity-dev-1.log
-</code></pre>
-
-<p>Take the blue pill and profit</p>
-
-                </section>
-            </article>
-            <footer id="post-meta" class="clearfix">
-                <a href="https://twitter.com/pdxjohnny">
-                        <img class="avatar" src="https://pdxjohnny.github.io/images/avatar.png">
-                        <div>
-                            <span class="dark">John Andersen</span>
-                            <span>up in yo kernel</span>
-                        </div>
-                    </a>
-                <section id="sharing">
-                    <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fpdxjohnny.github.io%2fpost%2ftrinity-fuzzer-android%2f - Trinity%20fuzzer%20on%20Android%20%28on%20Intel%29 by @pdxjohnny"><span class="icon-twitter"> Tweet</span></a>
-
-<a class="facebook" href="#" onclick="
-    window.open(
-      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
-      'facebook-share-dialog',
-      'width=626,height=436');
-    return false;"><span class="icon-facebook-rect"> Share</span>
-</a>
-
-                </section>
-            </footer>
-
-            
-
-            <ul id="post-list" class="archive readmore">
-    <h3>Read more</h3>
-    
-    
-        
-        <li>
-            <a href="https://pdxjohnny.github.io/post/3-resistor-bias-nmos/">3 Resistor Bias Circuit with NMOS Transistor<aside class="dates">Nov 11</aside></a>
-        </li>
-        
-   
-    
-        
-   
-    
-        
-        <li>
-            <a href="https://pdxjohnny.github.io/post/arm-qemu/">ARM workflow with qemu and arm-none-eabi<aside class="dates">Nov 9</aside></a>
-        </li>
-        
-   
-    
-        
-        <li>
-            <a href="https://pdxjohnny.github.io/post/trinity-fuzzer-android/">Trinity fuzzer on Android (on Intel)<aside class="dates">Oct 17</aside></a>
-        </li>
-        
-   
-    
-        
-        <li>
-            <a href="https://pdxjohnny.github.io/post/peach-network/">Fuzzing network applications with peach<aside class="dates">Aug 10</aside></a>
-        </li>
-        
-   
-</ul>
-            <footer id="footer">
-    
-        <div id="social">
-
-	
-	
-    
-    <a class="symbol" href="https://www.github.com/pdxjohnny">
-        circlegithub
-    </a>
-    
-    <a class="symbol" href="https://www.twitter.com/pdxjohnny">
-        circletwitterbird
-    </a>
-    
-
-
-</div>
-
-    
-    <p class="small">
-    
-        © Copyright 2016 John Andersen
-    
-    </p>
-</footer>
-
-        </section>
-
-        <script src="https://pdxjohnny.github.io/js/jquery.min.js"></script>
-<script src="https://pdxjohnny.github.io/js/main.js"></script>
-<script src="https://pdxjohnny.github.io/js/highlight.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
-
-
-
-
-
-    </body>
-</html>
+</code></pre><p>Take the blue pill and profit</p></section></article><footer id=post-meta class=clearfix><a href=https://twitter.com/pdxjohnny><img class=avatar src=https://pdxjohnny.github.io/images/avatar.png><div><span class=dark>John Andersen</span>
+<span>up in yo kernel</span></div></a><section id=sharing><a class=twitter href="https://twitter.com/intent/tweet?text=https%3a%2f%2fpdxjohnny.github.io%2fpost%2ftrinity-fuzzer-android%2f - Trinity%20fuzzer%20on%20Android%20%28on%20Intel%29 by @pdxjohnny"><span class=icon-twitter>Tweet</span></a>
+<a class=facebook href=# onclick="window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),'facebook-share-dialog','width=626,height=436');return false;"><span class=icon-facebook-rect>Share</span></a></section></footer><ul id=post-list class="archive readmore"><h3>Read more</h3><li><a href=https://pdxjohnny.github.io/>John Andersen (pdxjohnny)<aside class=dates>Jun 25</aside></a></li><li><a href=https://pdxjohnny.github.io/post/dev-environment/>Personal Development Environment<aside class=dates>Jun 25</aside></a></li><li><a href=https://pdxjohnny.github.io/post/>Posts<aside class=dates>Jun 25</aside></a></li><li><a href=https://pdxjohnny.github.io/post/clear-containers-on-arch-linux/>Clear Containers on Arch Linux<aside class=dates>Jan 17</aside></a></li><li><a href=https://pdxjohnny.github.io/post/3-resistor-bias-nmos/>3 Resistor Bias Circuit with NMOS Transistor<aside class=dates>Nov 11</aside></a></li><li><a href=https://pdxjohnny.github.io/post/arm-qemu/>ARM workflow with qemu and arm-none-eabi<aside class=dates>Nov 9</aside></a></li><li><a href=https://pdxjohnny.github.io/post/trinity-fuzzer-android/>Trinity fuzzer on Android (on Intel)<aside class=dates>Oct 17</aside></a></li><li><a href=https://pdxjohnny.github.io/post/peach-network/>Fuzzing network applications with peach<aside class=dates>Aug 10</aside></a></li><li><a href=https://pdxjohnny.github.io/categories/>Categories<aside class=dates>Jan 1</aside></a></li></ul><footer id=footer><div id=social><a class=symbol href=https://www.github.com/pdxjohnny>circlegithub</a>
+<a class=symbol href=https://www.twitter.com/pdxjohnny>circletwitterbird</a></div><p class=small>© Copyright 2016 John Andersen</p></footer></section><script src=https://pdxjohnny.github.io/js/jquery.min.js></script><script src=https://pdxjohnny.github.io/js/main.js></script><script src=https://pdxjohnny.github.io/js/highlight.js></script><script>hljs.initHighlightingOnLoad();</script></body></html>
