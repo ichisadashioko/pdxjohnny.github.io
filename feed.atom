@@ -9,9 +9,115 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-24T03:37:00Z</updated>
+  <updated>2020-07-24T04:53:29Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
+  <entry>
+    <title>Python Pagination</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/post/python-pagination/</id>
+    <updated>2020-07-24T04:42:34Z</updated>
+    <published>2020-07-24T04:42:34Z</published>
+    <content type="html"><![CDATA[<p>This is an example of how you might uses the <code>requests</code> HTTP Python library to
+create a client that knows how to read all the pages from an HTTP API and yield
+each result within a page.</p>
+<p>We also use the <code>httptest</code> library to create a test server.</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NamedTuple</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">httptest</span>
+
+
+<span class="k">class</span> <span class="nc">TestSearchPagesHTTPHandler</span><span class="p">(</span><span class="n">httptest</span><span class="o">.</span><span class="n">Handler</span><span class="p">):</span>
+
+    <span class="n">TOTAL</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1237</span>
+    <span class="n">PER_PAGE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span>
+    <span class="n">RESULTS</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">TOTAL</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">do_GET</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">parse_qsl</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">query</span><span class="p">))</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&#34;page&#34;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_header</span><span class="p">(</span><span class="s2">&#34;Content-type&#34;</span><span class="p">,</span> <span class="s2">&#34;application/json&#34;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_headers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&#34;queryInfo&#34;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&#34;resultsFound&#34;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">TOTAL</span><span class="p">,</span>
+                        <span class="s2">&#34;resultsPerPage&#34;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">PER_PAGE</span><span class="p">,</span>
+                        <span class="s2">&#34;page&#34;</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span>
+                        <span class="s2">&#34;pageSize&#34;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">PER_PAGE</span><span class="p">,</span>
+                        <span class="s2">&#34;nextPage&#34;</span><span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="s2">&#34;lastPage&#34;</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TOTAL</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">PER_PAGE</span><span class="p">),</span>
+                    <span class="p">},</span>
+                    <span class="s2">&#34;results&#34;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">RESULTS</span><span class="p">[</span>
+                        <span class="p">((</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">PER_PAGE</span><span class="p">)</span> <span class="p">:</span> <span class="p">((</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">PER_PAGE</span><span class="p">)</span>
+                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">PER_PAGE</span>
+                    <span class="p">],</span>
+                <span class="p">}</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+        <span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">ClientConfig</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">class</span> <span class="nc">Client</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">tuple</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="c1"># Requests session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_exc_type</span><span class="p">,</span> <span class="n">_exc_value</span><span class="p">,</span> <span class="n">_traceback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">lastPage</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">while</span> <span class="n">lastPage</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">lastPage</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="s2">&#34;sortOrder&#34;</span><span class="p">,</span> <span class="s2">&#34;name_asc&#34;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">&#34;page&#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s2">&#34;pageSize&#34;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">page_size</span><span class="p">)),</span>
+                <span class="p">(</span><span class="s2">&#34;searchQuery&#34;</span><span class="p">,</span> <span class="n">query</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="s2">&#34;{self.config.url}/search&#34;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+            <span class="n">body</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="n">lastPage</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="s2">&#34;queryInfo&#34;</span><span class="p">][</span><span class="s2">&#34;lastPage&#34;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">body</span><span class="p">[</span><span class="s2">&#34;results&#34;</span><span class="p">]:</span>
+                <span class="k">yield</span> <span class="n">result</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<span class="k">class</span> <span class="nc">TestClient</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="nd">@httptest.Server</span><span class="p">(</span><span class="n">TestSearchPagesHTTPHandler</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">test_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="o">=</span><span class="n">httptest</span><span class="o">.</span><span class="n">NoServer</span><span class="p">()):</span>
+        <span class="k">with</span> <span class="n">Client</span><span class="p">(</span><span class="n">ClientConfig</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">url</span><span class="p">()))</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&#34;test&#34;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">),</span> <span class="n">TestSearchPagesHTTPHandler</span><span class="o">.</span><span class="n">TOTAL</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</code></pre></div>]]></content>
+  </entry>
   <entry>
     <title>Free Resources</title>
     <author>
