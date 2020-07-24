@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-24T06:39:50Z</updated>
+  <updated>2020-07-24T06:42:05Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -439,6 +439,335 @@ Connected to QEMU 4.1.0
 </blockquote>
 <h3 id="precompiled-uefi-firmware">Precompiled UEFI Firmware</h3>
 <p><a href="https://cdn.download.clearlinux.org/image/OVMF.fd">https://cdn.download.clearlinux.org/image/OVMF.fd</a></p>]]></content>
+  </entry>
+  <entry>
+    <title>Wireguard HowTo</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/post/wireguard/</id>
+    <updated>2020-07-24T06:00:00Z</updated>
+    <published>2020-07-24T06:00:00Z</published>
+    <content type="html"><![CDATA[<p>Wireguard is a VPN that comes built into Linux kernels &gt;= 5.6
+It also has clients for OSs like Windows, OSX, and Android.</p>
+<p>If you're looking for how to have a virtual LAN party, Wireguard
+is a great way to do it. Since it's cross platform. You can even
+play Windows games on Linux using Lutris and network them with
+Wireguard to get Windows and Linux machines playing together.</p>
+<h2 id="checking-if-you-have-it">Checking If You Have It</h2>
+<p>To check if you're Linux distro alreay has wireguard support,
+look in the modules directory.</p>
+<blockquote>
+<p>My version at the moment is <code>5.6.4-152.current</code>, yours will
+likely be different</p>
+</blockquote>
+<pre><code class="language-console" data-lang="console">$ find /lib/modules/$(uname -r) -type f -name '*wireguard*.ko*'
+/lib/modules/5.6.4-152.current/kernel/drivers/net/wireguard/wireguard.ko
+</code></pre><p>If that doesn't show anything then check if it's built into the
+kernel. This command will show some output if it is. On my system
+it's a <code>.ko</code>, therefore it's not builtin, therefore this command
+showed nothing.</p>
+<pre><code class="language-console" data-lang="console">$ grep wireguard /lib/modules/$(uname -r)/modules.builtin
+</code></pre><p>You'll also need the <code>wg</code> command line utility. Just type <code>wg</code> and
+if you see command not found then you'll want to head over to
+<a href="https://www.wireguard.com/install/">https://www.wireguard.com/install/</a> for details on how to install it.</p>
+<h2 id="getting-it">Getting It</h2>
+<p>If you don't have a version of the Linux kernel with wireguard
+built in, you can compile and use the
+<a href="https://git.zx2c4.com/wireguard-go/about/">wireguard-go</a> project.
+It won't be as fast as compiling the kernel module but it might be
+a hell of a lot less steps.</p>
+<p>If you don't want to take the performance hit, you can compile the
+kernel module as seen in the
+<a href="https://www.wireguard.com/compilation/">compilation</a> instructions.</p>
+<p>You'll build it, then add it to the kernel with <code>insmod</code>.</p>
+<pre><code class="language-console" data-lang="console">$ sudo insmod wireguard-linux-compat/src/wireguard.ko
+</code></pre><p>Check <code>dmesg</code>, if you see complaints about missing symbols,
+you can recompile those modules that are missing, as seen
+under kernel requirements. You'll want to find out how your
+Linux distrobution recommends compiling the kernel. This is
+because many of them have patches that your system won't
+work without added to the kernel. You might be able to run
+the kernel from kernel.org, but don't count on that.</p>
+<h2 id="configuring-it">Configuring It</h2>
+<p>The following is an example config file one might use.
+There are comments within it to explain everything.</p>
+<div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="c1"># The Interface section is for defining things about this</span>
+<span class="c1"># machine</span>
+<span class="k">[Interface]</span>
+<span class="c1"># The port wireguard will listen on for others to use as</span>
+<span class="c1"># and Endpoint (along with this machines IP)</span>
+<span class="na">ListenPort</span> <span class="o">=</span> <span class="s">60200</span>
+<span class="c1"># On Windows when you click Add Tunnel it will generate</span>
+<span class="c1"># a private key for you. On Linux you&#39;ll want to put the</span>
+<span class="c1"># output of `wg genkey` here.</span>
+<span class="c1"># The config files of the other machines in the network</span>
+<span class="c1"># will need the public key that correseponds to this private</span>
+<span class="c1"># key. On Windows it will show you the public key in a little</span>
+<span class="c1"># box under the config file name when it&#39;s being edited. On</span>
+<span class="c1"># Linux, you can run the following command to parse this file</span>
+<span class="c1"># to get the private key and convert it into the public key</span>
+<span class="c1"># $ grep &#39;PrivateKey = &#39; wg.conf | tail -n 1 | sed -e &#39;s/.* = //g&#39; | wg pubkey</span>
+<span class="na">PrivateKey</span> <span class="o">=</span> <span class="s">REPLACE_WITH_PRIVATE_KEY</span>
+<span class="c1"># On Windows you&#39;ll want to specify the address for the</span>
+<span class="c1"># machine like by removing the # in front. The setup.sh</span>
+<span class="c1"># script that follows parses it out of this config file</span>
+<span class="c1"># and uses it as your address. For Linux the wg tool will</span>
+<span class="c1"># tell you there&#39;s an error if you uncomment it.</span>
+<span class="c1"># You&#39;ll want to make sure you leave this as /24 and</span>
+<span class="c1"># the other addresses as /32. See the References section</span>
+<span class="c1"># for more details on this.</span>
+<span class="c1"># Address = 192.168.4.4/24</span>
+
+<span class="c1"># Each time you have a new compuer you want to connect to</span>
+<span class="c1"># it&#39;ll need it&#39;s own [Peer] section.</span>
+<span class="k">[Peer]</span>
+<span class="c1"># You&#39;ll want to specify the public key of the machine</span>
+<span class="c1"># you want to connect to. The person with the config file</span>
+<span class="c1"># of the machine you&#39;re trying to connect to needs to run</span>
+<span class="c1"># the command with `wg pubkey` in the comment above PrivateKey</span>
+<span class="c1"># to get their public key. They then should share it with you</span>
+<span class="c1"># over some secure medium of communication, ideally end to</span>
+<span class="c1"># end encrypted. If it get&#39;s tampered with, your wireguard</span>
+<span class="c1"># connection is no longer secure.</span>
+<span class="na">PublicKey</span> <span class="o">=</span> <span class="s">4QEX7I58pR5PaZNmDI2wmnsT/HvvFBkNc5wZJ00scXw==</span>
+<span class="c1"># You&#39;ll want to put the IP that the other machine will be</span>
+<span class="c1"># accessable at here. This is the value they have as Address</span>
+<span class="c1"># under the [Interface] section of their wg.conf</span>
+<span class="na">AllowedIPs</span> <span class="o">=</span> <span class="s">192.168.4.115/32</span>
+<span class="c1"># If the person has a server they&#39;re running wireguard on and</span>
+<span class="c1"># has exposed their ListenPort then that goes here. If another</span>
+<span class="c1"># person has used their home router and port forwarded then</span>
+<span class="c1"># that also can be used. The IP address here is the IP address</span>
+<span class="c1"># of the machine as it is on the publicly addressable Internet,</span>
+<span class="c1"># not your friends IP on their home network. This can be found by</span>
+<span class="c1"># typing into Google, what&#39;s my IP, or using canihazip.com</span>
+<span class="na">Endpoint</span> <span class="o">=</span> <span class="s">76.115.24.198:43022</span>
+<span class="c1"># This is used to make sure the connection stays alive.</span>
+<span class="c1"># It says to send a heartbeat / ping to the Endpoint every</span>
+<span class="c1"># 25 seconds</span>
+<span class="na">PersistentKeepalive</span> <span class="o">=</span> <span class="s">25</span>
+
+<span class="c1"># Keep adding peers as you wish. At a minium you&#39;ll need to</span>
+<span class="c1"># add their public key and their address</span>
+<span class="k">[Peer]</span>
+<span class="na">PublicKey</span> <span class="o">=</span> <span class="s">3StsslOTQlqMnd42UaKi9FdNu9GSTLi1WCaqwg8lkhc=</span>
+<span class="na">AllowedIPs</span> <span class="o">=</span> <span class="s">192.168.4.3/32</span>
+</code></pre></div><p>If we wanted to setup a network where all machines would have
+192.168.4.XXX addresses, we could do it as follows.</p>
+<p>First, copy the example config file into a file named <code>wg.conf</code>.</p>
+<p>You'll want to generate a new private key and add it to the file.</p>
+<pre><code class="language-console" data-lang="console">$ sed -i &quot;s#REPLACE_WITH_PRIVATE_KEY#$(wg genkey)#&quot; wg.conf
+</code></pre><p>You need to get your public key from your private key.
+The following command parses the private key out of the
+config file and generates the corresponding public key.</p>
+<pre><code class="language-console" data-lang="console">$ grep 'PrivateKey = ' wg.conf | tail -n 1 | sed -e 's/.* = //g' | wg pubkey
+rR7O5IvIq16RpntAqZCNmTd42nsI6Mq5139XMYwZ5hQ=
+</code></pre><p>The output of this command is the public key which will
+be used in one of the <code>[Peer]</code> sections in the config of
+the other machines in your new wireguard network. It will
+change whenever you regenerate the private key and replace
+it in the config file.</p>
+<p>You should communicate with the other people you're trying
+to set up your new wireguard network with to make sure you
+all choose a differnet IP address for the line that has
+<code>Address = </code>. On Windows you'll need to uncomment that line.
+In the <a href="#using-it">Using It</a> secion there will be a <code>setup.sh</code>
+script, On Linux the script will parse the comment and use it
+as your IP address within the wireguard network, do not
+uncomment that line on Linux.</p>
+<p>You can parse your config file to get your choosen address
+using the following command.</p>
+<pre><code class="language-console" data-lang="console">$ cat &quot;${conf}&quot;| grep 'Address = ' | sed -e 's/.* = //g' -e 's/\/24//g'
+192.168.4.4
+</code></pre><p>In this case, our machine will appear in the config file
+of the other machines as follows</p>
+<div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="k">[Peer]</span>
+<span class="na">PublicKey</span> <span class="o">=</span> <span class="s">rR7O5IvIq16RpntAqZCNmTd42nsI6Mq5139XMYwZ5hQ=</span>
+<span class="na">AllowedIPs</span> <span class="o">=</span> <span class="s">192.168.4.4/32</span>
+</code></pre></div><p>If you have the <code>ListenPort</code> exposed to the public internet,
+via port forwarding or via firewall rules (or both). Then the
+peer section for your machine in the config files of the other
+people in your netowrk will include the <code>Endpoint</code> and optionally
+the <code>PersistentKeepalive</code> properties.</p>
+<p>You can find your IP by running</p>
+<pre><code class="language-console" data-lang="console">$ curl -s -w '\n' https://canihazip.com/s
+24.21.101.158
+</code></pre><p>The corresponding <code>[Peer]</code> section in other peoples configs
+would then be the following.</p>
+<div class="highlight"><pre class="chroma"><code class="language-ini" data-lang="ini"><span class="k">[Peer]</span>
+<span class="na">PublicKey</span> <span class="o">=</span> <span class="s">rR7O5IvIq16RpntAqZCNmTd42nsI6Mq5139XMYwZ5hQ=</span>
+<span class="na">AllowedIPs</span> <span class="o">=</span> <span class="s">192.168.4.4/32</span>
+<span class="na">Endpoint</span> <span class="o">=</span> <span class="s">24.21.101.158:60200</span>
+<span class="na">PersistentKeepalive</span> <span class="o">=</span> <span class="s">25</span>
+</code></pre></div><h2 id="using-it">Using It</h2>
+<p>If you're using wireguard-go you'll want to run it in a seperate
+terminal before running the <code>setup.sh</code> script. This command tells
+wireguard-go to create a new wireguard interface called wg0.</p>
+<pre><code class="language-console" data-lang="console">$ wireguard-go -f wg0
+</code></pre><p>If you're using wireguard-go you'll want to run this export
+command in the same terminal you're going to run <code>setup.sh</code></p>
+<pre><code class="language-console" data-lang="console">$ export WGGO=1
+</code></pre><p>Here is the script you can name <code>setup.sh</code> to use to setup a
+simple wireguard network.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="cp">#!/usr/bin/env bash
+</span><span class="cp"></span><span class="c1"># Usage: sudo bash setup.sh wg.conf</span>
+<span class="nb">set</span> -xe
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&#34;x</span><span class="nv">$UID</span><span class="s2">&#34;</span> !<span class="o">=</span> <span class="s2">&#34;x0&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+  <span class="nb">echo</span> <span class="s2">&#34;You must be root to run this.&#34;</span>
+  <span class="nb">exit</span> <span class="m">1</span>
+<span class="k">fi</span>
+
+<span class="c1"># Check that the first argument is a file</span>
+<span class="k">if</span> <span class="o">[</span> -f <span class="s2">&#34;</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+  <span class="c1"># Set the conf variable to the first argument</span>
+  <span class="nv">conf</span><span class="o">=</span><span class="s2">&#34;</span><span class="si">${</span><span class="nv">1</span><span class="si">}</span><span class="s2">&#34;</span>
+<span class="k">else</span>
+  <span class="c1"># If it isn&#39;t a file then complain</span>
+  <span class="nb">echo</span> <span class="s2">&#34;Usage: sudo bash </span><span class="nv">$0</span><span class="s2"> wg.conf&#34;</span>
+  <span class="nb">exit</span> <span class="m">1</span>
+<span class="k">fi</span>
+
+<span class="c1"># If you are using wireguard-go</span>
+<span class="c1"># export WGGO=1</span>
+<span class="c1"># before running this. You&#39;ll have to create the</span>
+<span class="c1"># interface a different way described later</span>
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&#34;x</span><span class="si">${</span><span class="nv">WGGO</span><span class="si">}</span><span class="s2">&#34;</span> <span class="o">==</span> <span class="s2">&#34;x&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+  <span class="c1"># Remove existing interface if it exists</span>
+  ip link del dev wg0 2&gt;/dev/null <span class="o">||</span> <span class="nb">true</span>
+  <span class="c1"># Create a new wireguard interface</span>
+  ip link add dev wg0 <span class="nb">type</span> wireguard
+<span class="k">fi</span>
+
+<span class="c1"># Parse out our IP from the config file</span>
+<span class="nv">our_ip</span><span class="o">=</span><span class="k">$(</span>cat <span class="s2">&#34;</span><span class="si">${</span><span class="nv">conf</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">|</span> grep <span class="s1">&#39;Address = &#39;</span> <span class="p">|</span> sed -e <span class="s1">&#39;s/.* = //g&#39;</span> -e <span class="s1">&#39;s/\/24//g&#39;</span><span class="k">)</span>
+
+<span class="c1"># Tell Linux that our IP for the wireguard interface is the</span>
+<span class="c1"># one we paresed out from the Address line in the config file</span>
+ip address add <span class="s2">&#34;</span><span class="nv">$our_ip</span><span class="s2">&#34;</span>/24 dev wg0
+
+<span class="c1"># Grab a list of our peers IPs by parsing every line</span>
+<span class="c1"># with AllowedIPs in the config file</span>
+<span class="nv">peers</span><span class="o">=</span><span class="k">$(</span>cat <span class="s2">&#34;</span><span class="si">${</span><span class="nv">conf</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">|</span> grep AllowedIPs <span class="p">|</span> sed -e <span class="s1">&#39;s/.* = //g&#39;</span> -e <span class="s1">&#39;s/\/32//g&#39;</span><span class="k">)</span>
+
+<span class="k">for</span> addr in <span class="si">${</span><span class="nv">peers</span><span class="si">}</span><span class="p">;</span> <span class="k">do</span>
+  <span class="c1"># Tell Linux that it can find our peers using the</span>
+  <span class="c1"># interface we added</span>
+  ip address add dev wg0 <span class="s2">&#34;</span><span class="si">${</span><span class="nv">our_ip</span><span class="si">}</span><span class="s2">&#34;</span> peer <span class="s2">&#34;</span><span class="si">${</span><span class="nv">addr</span><span class="si">}</span><span class="s2">&#34;</span>
+<span class="k">done</span>
+
+<span class="c1"># Tell wireguard to use our config file</span>
+wg setconf wg0 <span class="s2">&#34;</span><span class="si">${</span><span class="nv">conf</span><span class="si">}</span><span class="s2">&#34;</span>
+
+<span class="c1"># Turn on the interface</span>
+ip link <span class="nb">set</span> up dev wg0
+
+<span class="c1"># Show the configured interface</span>
+ip addr show wg0
+</code></pre></div><p>Make sure your config files are all correct, and then run
+the script as root. The following example of running the
+script includes sample output.</p>
+<pre><code class="language-console" data-lang="console">$ sudo bash setup.sh wg.conf
++ '[' x0 '!=' x0 ']'
++ '[' -f wg.conf ']'
++ conf=wg.conf
++ '[' x == x ']'
++ ip link del dev wg0
++ ip link add dev wg0 type wireguard
+++ cat wg.conf
+++ sed -e 's/.* = //g' -e 's/\/24//g'
+++ grep 'Address = '
++ our_ip=192.168.4.4
++ ip address add 192.168.4.4/24 dev wg0
+++ cat wg.conf
+++ sed -e 's/.* = //g' -e 's/\/32//g'
+++ grep AllowedIPs
++ peers='192.168.4.115
+192.168.4.3'
++ for addr in ${peers}
++ ip address add dev wg0 192.168.4.4 peer 192.168.4.115
++ for addr in ${peers}
++ ip address add dev wg0 192.168.4.4 peer 192.168.4.3
++ wg setconf wg0 wg.conf
++ ip link set up dev wg0
++ ip addr show wg0
+25: wg0: &lt;POINTOPOINT,NOARP,UP,LOWER_UP&gt; mtu 1420 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/none
+    inet 192.168.4.4/24 scope global wg0
+       valid_lft forever preferred_lft forever
+    inet 192.168.4.4 peer 192.168.4.115/32 scope global wg0
+       valid_lft forever preferred_lft forever
+    inet 192.168.4.4 peer 192.168.4.3/32 scope global wg0
+       valid_lft forever preferred_lft forever
+</code></pre><p>On Windows, you'll just save the config file and click Activate.</p>
+<p>Once everyone has run the script or activated the config (for
+Windows). Then you can try pinging the other hosts.</p>
+<blockquote>
+<p>You may not be able to ping some Windows machines. But they
+will be able to ping you. So try the reverse when it's not
+working.</p>
+</blockquote>
+<pre><code class="language-console" data-lang="console">$ ping 192.168.4.3
+PING 192.168.4.3 (192.168.4.3): 56 data bytes
+64 bytes from 192.168.4.3: icmp_seq=0 ttl=128 time=3.197 ms
+64 bytes from 192.168.4.3: icmp_seq=1 ttl=128 time=3.617 ms
+64 bytes from 192.168.4.3: icmp_seq=2 ttl=128 time=37.290 ms
+64 bytes from 192.168.4.3: icmp_seq=3 ttl=128 time=3.504 ms
+64 bytes from 192.168.4.3: icmp_seq=4 ttl=128 time=3.626 ms
+64 bytes from 192.168.4.3: icmp_seq=5 ttl=128 time=37.651 ms
+64 bytes from 192.168.4.3: icmp_seq=6 ttl=128 time=3.461 ms
+^C--- 192.168.4.3 ping statistics ---
+7 packets transmitted, 7 packets received, 0% packet loss
+round-trip min/avg/max/stddev = 3.197/13.192/37.651/15.356 ms
+</code></pre><h2 id="gotchas">Gotchas</h2>
+<ul>
+<li>
+<p>If you see <code>ping: sending packet: Destination address required</code>.
+It's likely that everyone need to check their configs to make
+sure that everyone elses public keys are correct.</p>
+</li>
+<li>
+<p>The Windows client takes an <code>Address</code> parameter that's used as the
+IP address for the machine running that config. You'll need to
+uncomment it.</p>
+</li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li>
+<p><a href="https://www.wireguard.com/quickstart/">https://www.wireguard.com/quickstart/</a></p>
+</li>
+<li>
+<p><a href="https://blog.jessfraz.com/post/installing-and-using-wireguard/">https://blog.jessfraz.com/post/installing-and-using-wireguard/</a></p>
+<ul>
+<li>Example of using the demo server</li>
+</ul>
+</li>
+<li>
+<p>Scripts that run the wireguard demo server</p>
+<ul>
+<li><a href="https://git.zx2c4.com/wireguard-tools/tree/contrib/ncat-client-server">https://git.zx2c4.com/wireguard-tools/tree/contrib/ncat-client-server</a></li>
+</ul>
+</li>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks">https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks</a></p>
+<ul>
+<li>The reason we do <code>/32</code> behind all the IPs of our peers is because
+it means there is only 1 address in that block, that one address
+is the address of our peer (the one preceding the <code>/</code>)</li>
+</ul>
+</li>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Private_network#Private_IPv4_addresses">https://en.wikipedia.org/wiki/Private_network#Private_IPv4_addresses</a></p>
+<ul>
+<li>If you have more than 255 peers you want to connect then you'll
+want to change the <code>/24</code> to something appropriate. You'll have to
+read this and the previous link to figure out what you should use.</li>
+</ul>
+</li>
+</ul>]]></content>
   </entry>
   <entry>
     <title>Binary Downloads</title>
