@@ -9,9 +9,49 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-24T06:15:27Z</updated>
+  <updated>2020-07-24T06:21:35Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
+  <entry>
+    <title>ffmpeg</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/post/ffmpeg/</id>
+    <updated>2020-07-24T06:00:00Z</updated>
+    <published>2020-07-24T06:00:00Z</published>
+    <content type="html"><![CDATA[<p>ffmpeg is a powerful tool for command line video, audio, and image processing
+(centered around images and audio as they relate to video).</p>
+<p>Here's some things you can do with it</p>
+<h2 id="video-to-gif">Video to GIF</h2>
+<pre><code class="language-console" data-lang="console">$ ffmpeg -ss 0.3 -t 40 -i input-video.flv -vf \
+  &quot;fps=10,scale=1920👎flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse&quot; \
+  -loop 0 output.gif
+</code></pre><p>Arguments:</p>
+<ul>
+<li>
+<p><code>-ss</code> start second</p>
+</li>
+<li>
+<p><code>-t</code> end after X seconds</p>
+</li>
+<li>
+<p><code>-y</code> means overwrite the output file without asking</p>
+</li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li>
+<p><code>scale=1920</code> lower this number to lower Y (I think?) resolution, lower will
+give you a smaller file size</p>
+</li>
+<li>
+<p><code>fps=10</code> lower this number to speed up, number of frames per second, also will
+decrease size of output file</p>
+</li>
+</ul>]]></content>
+  </entry>
   <entry>
     <title>Binary Downloads</title>
     <author>
