@@ -9,9 +9,118 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-24T06:32:08Z</updated>
+  <updated>2020-07-24T06:38:19Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
+  <entry>
+    <title>CORS</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/post/cors/</id>
+    <updated>2020-07-24T06:00:00Z</updated>
+    <published>2020-07-24T06:00:00Z</published>
+    <content type="html"><![CDATA[<p>Hey you know JavaScript, that thing everyone loves and hates.</p>
+<p>Well chances are you've written some of it. And you don't understand what these
+bullshit CORS messages are in the console when you try to make a request to a
+service hosted on a diferent domain or port than the one your webpage is served
+from.</p>
+<p>CORS (Cross Origin Resource Sharing) is a security feature which makes it so
+that websites can't send request to other websites without the permission of the
+site the request is being sent to. Makes sense, but it can be a pain when
+developing.</p>
+<p>You need control over the web server you are <em>requesting</em> in order to make CORS
+requests work (or a proxy between your client and the server).</p>
+<h2 id="fetch">Fetch</h2>
+<p>You might have run across this if you've tried using the
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch">&quot;Using Fetch&quot;</a>
+example from the Mozilla JavaScript documentation. Since it's about CORS.</p>
+<div class="highlight"><pre class="chroma"><code class="language-javascript" data-lang="javascript"><span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+  <span class="nx">mode</span><span class="o">:</span> <span class="s1">&#39;cors&#39;</span><span class="p">,</span>
+  <span class="nx">cache</span><span class="o">:</span> <span class="s1">&#39;no-cache&#39;</span><span class="p">,</span>
+  <span class="nx">credentials</span><span class="o">:</span> <span class="s1">&#39;same-origin&#39;</span><span class="p">,</span>
+  <span class="nx">headers</span><span class="o">:</span> <span class="p">{</span>
+    <span class="c1">// Triggers the sending of `Access-Control-Request-Headers: content-type`
+</span><span class="c1"></span>    <span class="s1">&#39;Content-Type&#39;</span><span class="o">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+  <span class="p">},</span>
+  <span class="nx">redirect</span><span class="o">:</span> <span class="s1">&#39;follow&#39;</span><span class="p">,</span>
+  <span class="nx">referrer</span><span class="o">:</span> <span class="s1">&#39;no-referrer&#39;</span><span class="p">,</span>
+  <span class="nx">body</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">data</span><span class="p">),</span> <span class="c1">// body data type must match &#34;Content-Type&#34; header
+</span><span class="c1"></span><span class="p">})</span>
+</code></pre></div><h2 id="example-request">Example Request</h2>
+<p>When your JavaScript makes a <code>POST</code> request to <code>/url/path/requested/by/client</code>,
+the following is the interaction between the server and the client (for the
+<em>preflight</em> request, in the successful case).</p>
+<p>Since we've issued a <code>POST</code> request instead of a <code>GET</code> request, the browser is
+going to make a request before the <code>POST</code> called the <em>preflight</em> request. This
+request has a HTTP method of <code>OPTIONS</code>. The purpose is for the browser to check
+if this JavaScript is allowed to make a <code>POST</code> request to the server.</p>
+<pre><code>*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to 127.0.0.1 (127.0.0.1) port 8080 (#0)
+&gt; OPTIONS /url/path/requested/by/client HTTP/1.1
+&gt; Host: 127.0.0.1:8080
+&gt; Accept-Encoding: deflate, gzip
+&gt; User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0
+&gt; Accept: */*
+&gt; Accept-Language: en-US,en;q=0.5
+&gt; Access-Control-Request-Method: POST
+&gt; Access-Control-Request-Headers: content-type
+&gt; Referer: http://127.0.0.1:5000/no-referrer
+&gt; Origin: http://127.0.0.1:5000
+&gt; DNT: 1
+&gt; Connection: keep-alive
+&gt; Pragma: no-cache
+&gt; Cache-Control: no-cache
+&gt; 
+&lt; HTTP/1.1 200 OK
+&lt; Access-Control-Allow-Origin: http://127.0.0.1:5000
+&lt; Access-Control-Allow-Methods: POST
+&lt; Access-Control-Allow-Headers: CONTENT-TYPE
+&lt; Content-Length: 0
+&lt; Content-Type: application/octet-stream
+&lt; Date: Wed, 31 Jul 2019 20:35:24 GMT
+&lt; Server: Python/3.7 aiohttp/3.5.4
+&lt; 
+* Connection #0 to host 127.0.0.1 left intact
+</code></pre><p>There's a couple important parts to this.</p>
+<ul>
+<li><code>OPTIONS</code>
+<ul>
+<li>Since the request is for the <code>OPTIONS</code> method. We need to make sure whatever
+server we're using, or library we're using to make a webserver, will repond
+to <code>OPTIONS</code> requests on the URL requested.</li>
+</ul>
+</li>
+<li><code>Access-Control-Request-Headers</code>
+<ul>
+<li>When the server responds to the <code>OPTIONS</code> request, it should include the
+<code>Access-Control-Allow-Headers</code> header in the response. This tells the
+browser what headers the JavaScript is allowed to send.</li>
+</ul>
+</li>
+</ul>
+<h2 id="fixing-it">Fixing it</h2>
+<p>You likely need to find some middleware for whatever framework your using, or
+search for how to enable CORS with whatever your working with.</p>
+<p>For example</p>
+<ul>
+<li>
+<p><a href="https://enable-cors.org/server.html">https://enable-cors.org/server.html</a></p>
+<ul>
+<li>List of how to enable for various servers and clients</li>
+</ul>
+</li>
+<li>
+<p><a href="https://github.com/aio-libs/aiohttp-cors">https://github.com/aio-libs/aiohttp-cors</a></p>
+<ul>
+<li>If you're using aiohttp server</li>
+</ul>
+</li>
+</ul>]]></content>
+  </entry>
   <entry>
     <title>ffmpeg</title>
     <author>
