@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-24T06:30:49Z</updated>
+  <updated>2020-07-24T06:32:08Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -56,6 +56,159 @@ decrease size of output file</p>
 </code></pre><h2 id="combine-with-image">Combine with image</h2>
 <pre><code class="language-console" data-lang="console">$ ffmpeg -loop 1 -y -i putin-on-the-ritz.jpg -i cut.mp3 -shortest out.webm
 </code></pre>]]></content>
+  </entry>
+  <entry>
+    <title>Linux Kernel Tips And Tricks</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/post/linux-kernel/</id>
+    <updated>2020-07-24T06:00:00Z</updated>
+    <published>2020-07-24T06:00:00Z</published>
+    <content type="html"><![CDATA[<h2 id="debugging">Debugging</h2>
+<p>Core dumps and kgdb: <a href="https://elinux.org/images/f/f0/Bingham.pdf">https://elinux.org/images/f/f0/Bingham.pdf</a></p>
+<h2 id="exploitation">Exploitation</h2>
+<p>SMEP disable via ROP, KASLR bypasss via DMESG</p>
+<ul>
+<li><a href="https://web.archive.org/web/20171029060939/http://www.blackbunny.io/linux-kernel-x86-64-bypass-smep-kaslr-kptr_restric/">https://web.archive.org/web/20171029060939/http://www.blackbunny.io/linux-kernel-x86-64-bypass-smep-kaslr-kptr_restric/</a></li>
+</ul>
+<h2 id="hacking-with-vim">Hacking With VIM</h2>
+<p><a href="https://stackoverflow.com/questions/33676829/vim-configuration-for-linux-kernel-development">https://stackoverflow.com/questions/33676829/vim-configuration-for-linux-kernel-development</a></p>
+<h2 id="build-in-tree-modules">Build In Tree Modules</h2>
+<pre><code class="language-console" data-lang="console">make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
+</code></pre><h2 id="install-kernel-to-chroot">Install Kernel To chroot</h2>
+<p>Here's how you install a kernel to a chroot. Or tar it up and
+send it over to another system for use there.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Edit your config</span>
+make olddefconfig
+<span class="nb">export</span> <span class="nv">INSTALL_MOD_PATH</span><span class="o">=</span>/path/to/your/chroot
+<span class="nb">export</span> <span class="nv">INSTALL_PATH</span><span class="o">=</span><span class="si">${</span><span class="nv">INSTALL_MOD_PATH</span><span class="si">}</span>/boot
+mkdir -p <span class="s2">&#34;</span><span class="si">${</span><span class="nv">INSTALL_PATH</span><span class="si">}</span><span class="s2">&#34;</span>
+<span class="c1"># Use number of cores times 4, this usually is about how many</span>
+<span class="c1"># threads your system can run</span>
+make -j <span class="k">$(($(</span>nproc<span class="k">)</span><span class="o">*</span><span class="m">4</span><span class="k">))</span>
+make install
+make modules_install -j <span class="k">$(($(</span>nproc<span class="k">)</span><span class="o">*</span><span class="m">4</span><span class="k">))</span>
+</code></pre></div><h2 id="chroot">Chroot</h2>
+<p>Instead of doing a regular chroot use <code>systemd-nspawn</code> which gives you a more fully featured chroot.</p>
+<p><a href="https://wiki.archlinux.org/index.php/Systemd-nspawn">https://wiki.archlinux.org/index.php/Systemd-nspawn</a></p>
+<h2 id="debugging-with-gdb">Debugging With GDB</h2>
+<p>If you are lucky enough to be working on something thats in a VM you can get
+GDB working!</p>
+<p>You need to run the kernel without KASLR (on the cmdline thats <code>nokaslr</code>).</p>
+<blockquote>
+<p>If you don't disable KASLR gdb can't set breakpoints or display the source to you</p>
+</blockquote>
+<p>Then you run QEMU with <code>-s -S</code>.</p>
+<ul>
+<li><code>-s</code> says enable GDB on port <code>1234</code></li>
+<li><code>-S</code> says wait to start the VM until GDB connects.</li>
+</ul>
+<p>Run GDB with <code>gdb ./vmlinux</code></p>
+<p>Now run</p>
+<pre><code class="language-console" data-lang="console">(gdb) target remote 127.0.0.1:1234
+</code></pre><p>To view the source code, type <code>layout src</code></p>
+<p>To focus back on the typey type window, type <code>focus cmd</code></p>
+<div class="highlight"><pre class="chroma"><code class="language-c" data-lang="c">   <span class="err">┌──</span><span class="n">arch</span><span class="o">/</span><span class="n">x86</span><span class="o">/</span><span class="n">kernel</span><span class="o">/</span><span class="n">machine_kexec_64</span><span class="p">.</span><span class="n">c</span><span class="err">─────────────────────────────────────────────────────────────────┐</span>
+   <span class="err">│</span><span class="mi">353</span>                 <span class="k">if</span> <span class="p">(</span><span class="n">result</span><span class="p">)</span>                                                                      <span class="err">│</span>
+   <span class="err">│</span><span class="mi">354</span>                         <span class="k">return</span> <span class="n">result</span><span class="p">;</span>                                                           <span class="err">│</span>
+   <span class="err">│</span><span class="mi">355</span>                                                                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">356</span>                 <span class="cm">/* update purgatory as needed */</span>                                                 <span class="err">│</span>
+   <span class="err">│</span><span class="mi">357</span>                 <span class="n">result</span> <span class="o">=</span> <span class="n">arch_update_purgatory</span><span class="p">(</span><span class="n">image</span><span class="p">);</span>                                           <span class="err">│</span>
+   <span class="err">│</span><span class="mi">358</span>                 <span class="k">if</span> <span class="p">(</span><span class="n">result</span><span class="p">)</span>                                                                      <span class="err">│</span>
+   <span class="err">│</span><span class="mi">359</span>                         <span class="k">return</span> <span class="n">result</span><span class="p">;</span>                                                           <span class="err">│</span>
+   <span class="err">│</span><span class="mi">360</span>                                                                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">361</span>                 <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>                                                                        <span class="err">│</span>
+   <span class="err">│</span><span class="mi">362</span>         <span class="p">}</span>                                                                                        <span class="err">│</span>
+   <span class="err">│</span><span class="mi">363</span>                                                                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">364</span>         <span class="kt">void</span> <span class="n">machine_kexec_cleanup</span><span class="p">(</span><span class="k">struct</span> <span class="n">kimage</span> <span class="o">*</span><span class="n">image</span><span class="p">)</span>                                         <span class="err">│</span>
+   <span class="err">│</span><span class="mi">365</span>         <span class="p">{</span>                                                                                        <span class="err">│</span>
+   <span class="err">│</span><span class="mi">366</span>                 <span class="n">free_transition_pgtable</span><span class="p">(</span><span class="n">image</span><span class="p">);</span>                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">367</span>         <span class="p">}</span>                                                                                        <span class="err">│</span>
+   <span class="err">│</span><span class="mi">368</span>                                                                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">369</span>         <span class="cm">/*                                                                                       │
+</span><span class="cm">   │370          * Do not allocate memory (or fail in any way) in machine_kexec().                       │
+</span><span class="cm">   │371          * We are past the point of no return, committed to rebooting now.                       │
+</span><span class="cm">   │372          */</span>                                                                                      <span class="err">│</span>
+   <span class="err">│</span><span class="mi">373</span>         <span class="kt">void</span> <span class="n">machine_kexec</span><span class="p">(</span><span class="k">struct</span> <span class="n">kimage</span> <span class="o">*</span><span class="n">image</span><span class="p">)</span>                                                 <span class="err">│</span>
+<span class="n">B</span><span class="o">+&gt;</span><span class="err">│</span><span class="mi">374</span>         <span class="p">{</span>                                                                                        <span class="err">│</span>
+   <span class="err">│</span><span class="mi">375</span>                 <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">page_list</span><span class="p">[</span><span class="n">PAGES_NR</span><span class="p">];</span>                                               <span class="err">│</span>
+   <span class="err">│</span><span class="mi">376</span>                 <span class="kt">void</span> <span class="o">*</span><span class="n">control_page</span><span class="p">;</span>                                                              <span class="err">│</span>
+   <span class="err">│</span><span class="mi">377</span>                 <span class="kt">int</span> <span class="n">save_ftrace_enabled</span><span class="p">;</span>                                                         <span class="err">│</span>
+   <span class="err">│</span><span class="mi">378</span>                                                                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">379</span>         <span class="err">#</span><span class="n">ifdef</span> <span class="n">CONFIG_KEXEC_JUMP</span>                                                                 <span class="err">│</span>
+   <span class="err">│</span><span class="mi">380</span>                 <span class="k">if</span> <span class="p">(</span><span class="n">image</span><span class="o">-&gt;</span><span class="n">preserve_context</span><span class="p">)</span>                                                     <span class="err">│</span>
+   <span class="err">│</span><span class="mi">381</span>                         <span class="n">save_processor_state</span><span class="p">();</span>                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">382</span>         <span class="err">#</span><span class="n">endif</span>                                                                                   <span class="err">│</span>
+   <span class="err">│</span><span class="mi">383</span>                                                                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">384</span>                 <span class="n">save_ftrace_enabled</span> <span class="o">=</span> <span class="n">__ftrace_enabled_save</span><span class="p">();</span>                                   <span class="err">│</span>
+   <span class="err">│</span><span class="mi">385</span>                                                                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">386</span>                 <span class="cm">/* Interrupts aren&#39;t acceptable while we reboot */</span>                               <span class="err">│</span>
+   <span class="err">│</span><span class="mi">387</span>                 <span class="n">local_irq_disable</span><span class="p">();</span>                                                             <span class="err">│</span>
+   <span class="err">│</span><span class="mi">388</span>                 <span class="n">hw_breakpoint_disable</span><span class="p">();</span>                                                         <span class="err">│</span>
+   <span class="err">│</span><span class="mi">389</span>                                                                                                  <span class="err">│</span>
+   <span class="err">│</span><span class="mi">390</span>                 <span class="k">if</span> <span class="p">(</span><span class="n">image</span><span class="o">-&gt;</span><span class="n">preserve_context</span><span class="p">)</span> <span class="p">{</span>                                                   <span class="err">│</span>
+   <span class="err">│</span><span class="mi">391</span>         <span class="err">#</span><span class="n">ifdef</span> <span class="n">CONFIG_X86_IO_APIC</span>                                                                <span class="err">│</span>
+   <span class="err">│</span><span class="mi">392</span>                         <span class="cm">/*                                                                       │
+</span><span class="cm">   │393                          * We need to put APICs in legacy mode so that we can                    │
+</span><span class="cm">   │394                          * get timer interrupts in second kernel. kexec/kdump                    │
+</span><span class="cm">   │395                          * paths already have calls to restore_boot_irq_mode()                   │
+</span><span class="cm">   │396                          * in one form or other. kexec jump path also need one.                  │
+</span><span class="cm">   └─────────────────────────────────────────────────────────────────────────────────────────────────────┘
+</span><span class="cm">remote Thread 1.1 In: machine_kexec                                          L374  PC: 0xffffffff810635f0
+</span><span class="cm">(gdb) b *machine_kexec
+</span><span class="cm">Breakpoint 1 at 0xffffffff810635f0: file arch/x86/kernel/machine_kexec_64.c, line 374.
+</span><span class="cm">(gdb) c
+</span><span class="cm">Continuing.
+</span><span class="cm">
+</span><span class="cm">Breakpoint 1, machine_kexec (image=0xffff888006f96800) at arch/x86/kernel/machine_kexec_64.c:374
+</span><span class="cm">(gdb)
+</span><span class="cm">
+</span></code></pre></div><h2 id="kvm">KVM</h2>
+<p><a href="https://lwn.net/Articles/658511/">https://lwn.net/Articles/658511/</a></p>
+<h3 id="nested-and-vmcs">Nested and VMCS</h3>
+<p><a href="https://web.archive.org/web/20191105205408/http://events19.linuxfoundation.org/wp-content/uploads/2017/12/Improving-KVM-x86-Nested-Virtualization-Liran-Alon-Oracle.pdf">https://web.archive.org/web/20191105205408/http://events19.linuxfoundation.org/wp-content/uploads/2017/12/Improving-KVM-x86-Nested-Virtualization-Liran-Alon-Oracle.pdf</a></p>
+<h2 id="contributions">Contributions</h2>
+<p>In your patches, write all about what you're doing. The kernel doesn't
+seem to like comments very much. Instead they rely on people writing
+insanely detailed commit messages describing what they are changing.</p>
+<p>Every time you change the kernel you're changing something that has been
+working fine for someone for X amount of long time. As such, you need to
+be convincing for why your change should be accepted! Make your coverletter
+and commit messages very detailed. The kernel is a big place. It may have
+been a long time since someone reading your patch series has looked at the
+place you're working. Be courtious and remind them of all the moving peices
+involved in what you're doing, and why and how you're changing them.</p>
+<h3 id="etiquette">Etiquette</h3>
+<ul>
+<li>You can say <code>patch</code> or <code>patchset</code> in your coverletter. Just not in the
+commit messages themselves.</li>
+</ul>
+<h2 id="kvm-1">KVM</h2>
+<h3 id="vmx">VMX</h3>
+<p>When a VM enters VMX root mode (aka &quot;I'm gonna run some VMs mode&quot;) using
+the <code>VMXON</code> instruction, it sets up what's called a <code>VMCS</code> for each VM
+/ virtualized processor it wants to run. All VMX related instructions
+operate on whatever VMCS we pointed to via the <code>VMPTRLD</code> instruction.</p>
+<h3 id="nested">Nested</h3>
+<ul>
+<li>
+<p>L0 == The host</p>
+</li>
+<li>
+<p>L1 == The guest</p>
+</li>
+<li>
+<p>L2 == The guest of the guest</p>
+</li>
+</ul>
+<p><code>vmx/nested.c</code> is responsible for emulating VMX for L1. When L1 does a
+<code>VMLAUNCH</code> or <code>VMRESUME</code>, <code>enter_guest_mode</code> is called, which means that
+<code>is_guest_mode</code> will now return <code>true</code>.</p>
+<h2 id="assembly">Assembly</h2>
+<p>What is <code>jmp 1f</code>?</p>
+<p><a href="https://stackoverflow.com/a/27353169/12310488">https://stackoverflow.com/a/27353169/12310488</a></p>]]></content>
   </entry>
   <entry>
     <title>QEMU</title>
