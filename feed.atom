@@ -9,9 +9,97 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-24T04:53:29Z</updated>
+  <updated>2020-07-24T06:12:21Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
+  <entry>
+    <title>Binary Downloads</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/post/binary-downloads/</id>
+    <updated>2020-07-24T05:00:00Z</updated>
+    <published>2020-07-24T05:00:00Z</published>
+    <content type="html"><![CDATA[<h2 id="choosing-the-right-download">Choosing the right download</h2>
+<p>So you went to download a file and you were presented with a list of options
+similar to the following</p>
+<p><img src="/images/binary-downloads.png" alt="list-of-binary-downloads"></p>
+<p>You know you're on Linux. But which one of these Linux downloads is right for
+you?</p>
+<p>Run the <code>uname</code> tool to help you find out</p>
+<pre><code class="language-console" data-lang="console">$ uname -a
+x86_64
+</code></pre><ul>
+<li><code>m</code> means tell us the hardware type</li>
+</ul>
+<p>If you see <code>x86_64</code> that means you want the download that says <code>amd64</code>.</p>
+<h2 id="installing-it">Installing it</h2>
+<p>When you're presented with a tarball (<code>.tar.*</code>) you'll want to download it and
+untar it using either your browser, <code>wget</code>, <code>curl</code> or whatever you want.</p>
+<p>Be careful when you extract the tarball! People usually leave all the files in
+the top level directory and when you extract it all the sudden you'll have files
+all over the place!</p>
+<p>I recommend creating a <em>temporary</em> directory first and changing your directory
+into it. We can do this all at once with the following command</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">cd</span> <span class="k">$(</span>mktemp -d<span class="k">)</span>
+</code></pre></div><ul>
+<li>
+<p><code>cd</code> is change directory</p>
+</li>
+<li>
+<p><code>mktemp</code> is a utility for creating temporary files and directories.
+It will output the name, which we capture and use as the place we want to
+change our current working directory to using the <code>$(  )</code> operator.</p>
+<ul>
+<li><code>-d</code> tells it to make a directory</li>
+</ul>
+</li>
+</ul>
+<p>Here's an example of downloading Hugo which is shown in the screenshot above.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">curl -LO https://github.com/gohugoio/hugo/releases/download/v0.74.3/hugo_0.74.3_Linux-64bit.tar.gz
+</code></pre></div><ul>
+<li>
+<p><code>L</code> means follow any redirects, you'll usually want this, especially with
+GitHub since it likes to redirect</p>
+</li>
+<li>
+<p><code>O</code> means save the file with the same name as it has in the URL</p>
+</li>
+</ul>
+<p>We then extract the downloaded file</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">tar -xvz hugo_0.74.3_Linux-64bit.tar.gz
+</code></pre></div><ul>
+<li>
+<p><code>x</code> means extract</p>
+</li>
+<li>
+<p><code>v</code> means be verbose, print all extracted files</p>
+</li>
+<li>
+<p><code>z</code> means the file will be <code>.gz</code> compressed, and we'll need to decompress it
+using the gzip decompression algorithm. If you run into other file types,
+do a search to figure out what to replace this with.</p>
+</li>
+</ul>
+<p>We should have extracted 3 files.</p>
+<p>You now want to put the binary, the command line program you want to run, in one
+of the directories in the <code>PATH</code> environment variable.</p>
+<p>You can run</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">echo</span> <span class="nv">$PATH</span>
+</code></pre></div><p>To get a <code>:</code> separated list of directories you can move the <code>hugo</code> file to so
+that you'll be able to use it from anywhere.</p>
+<p>We'll move it into the <code>/usr/bin</code> directory, a common place for executable files
+to live.</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">mv hugo /usr/bin/
+</code></pre></div><p>Now you can return to where you we're before you created the temporary directory
+by running</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">cd</span> -
+</code></pre></div><p>We can now run hugo!</p>
+<pre><code class="language-console" data-lang="console">$ hugo version
+Hugo Static Site Generator v0.74.3-DA0437B4 linux/amd64 BuildDate: 2020-07-23T16:22:34Z
+</code></pre>]]></content>
+  </entry>
   <entry>
     <title>Python Pagination</title>
     <author>
