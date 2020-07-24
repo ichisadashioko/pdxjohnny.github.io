@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-24T06:21:35Z</updated>
+  <updated>2020-07-24T06:29:27Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -51,6 +51,127 @@ give you a smaller file size</p>
 decrease size of output file</p>
 </li>
 </ul>]]></content>
+  </entry>
+  <entry>
+    <title>QEMU</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/post/qemu/</id>
+    <updated>2020-07-24T06:00:00Z</updated>
+    <published>2020-07-24T06:00:00Z</published>
+    <content type="html"><![CDATA[<p>QEMU is an indispensable tool for the virtual machine inclined. It's a command
+line utility for running virtual machines.</p>
+<h2 id="example-flags">Example Flags</h2>
+<p>Run a 64 bit Intel / AMD system</p>
+<pre><code class="language-console" data-lang="console">qemu-system-x86_64 ...
+</code></pre><h3 id="kvm">KVM</h3>
+<p>Without KVM your VM will be VERY VERY VERY slow. You'll want to enable this.</p>
+<pre><code>  -enable-kvm
+</code></pre><p>Make sure your use account has access to <code>/dev/kvm</code>, use <code>chown</code> to make the
+group <code>kvm</code>, and add your user to that group. You'll need log out and log back
+in for changes to take effect. Or run <code>bash --login</code>.</p>
+<pre><code class="language-console" data-lang="console">$ groupadd kvm
+$ usermod -aG $USER kvm
+$ ll /dev/kvm
+crw-rw-rw- 1 root root 10, 232 Jul 22 12:10 /dev/kvm
+$ chown root:kvm /dev/kvm
+$ ll /dev/kvm
+crw-rw-rw- 1 root kvm 10, 232 Jul 22 12:10 /dev/kvm
+</code></pre><h3 id="multiple-cpus">Multiple CPUs</h3>
+<pre><code>  -smp cpus=4
+</code></pre><h3 id="memory">Memory</h3>
+<pre><code>  -m 8192M
+</code></pre><h3 id="port-forwarding">Port Forwarding</h3>
+<pre><code>  -net \
+    nic,model=virtio \
+  -net \
+    user,hostfwd=tcp::2222-:22,hostfwd=tcp::4444-:2222
+</code></pre><h3 id="kernel">Kernel</h3>
+<p>Boot directly to a Linux kernel binary (skips some BIOS stuff)</p>
+<pre><code>  -kernel \
+    &quot;linux-source-tree/arch/x86/boot/bzImage&quot;
+</code></pre><h3 id="kernel-cmdline">Kernel cmdline</h3>
+<p>The <code>root*</code> options here correspond to the
+<a href="#host-filesystem-passthrough">Host Filesystem Passthrough</a> section.</p>
+<pre><code>  -append \
+    &quot;console=ttyS0 rootfstype=9p root=/dev/root ro rootflags=trans=virtio,version=9p2000.u init=/usr/lib/systemd/systemd&quot;
+</code></pre><h3 id="disable-gui">Disable GUI</h3>
+<pre><code>  -nographic
+</code></pre><h3 id="cpu-emulation">CPU Emulation</h3>
+<p>Specify <code>host</code> to have QEMU not emulate another CPU, just use the host CPU.</p>
+<pre><code>  -cpu host
+</code></pre><h3 id="specify-bios">Specify BIOS</h3>
+<p>You'll need this if you want to use UEFI</p>
+<pre><code>  -bios \
+    &quot;path/to/OVMF.fd&quot;
+</code></pre><h3 id="bios-debugging-connection">BIOS Debugging Connection</h3>
+<pre><code>  -chardev \
+    pipe,path=qemudebugpipe,id=seabios \
+  -device \
+    isa-debugcon,iobase=0x402,chardev=seabios
+</code></pre><p>Reference: <a href="https://www.seabios.org/Debugging#Debugging_with_gdb_on_QEMU">https://www.seabios.org/Debugging#Debugging_with_gdb_on_QEMU</a></p>
+<h3 id="host-filesystem-passthrough">Host Filesystem Passthrough</h3>
+<p>Use a directory on the host as a filesystem for the guest.</p>
+<p>This requires that the guest kernel has been configured with:</p>
+<pre><code>CONFIG_9P_FS=y
+CONFIG_9P_FS_POSIX_ACL=y
+CONFIG_9P_FS_SECURITY=y
+CONFIG_NET_9P=y
+CONFIG_NET_9P_VIRTIO=y
+</code></pre><p><em>9P fs is buggy as all hell</em> In particular, fsync seems to be broken.</p>
+<pre><code>  -fsdev \
+    local,id=fsdev-root,path=&quot;${CHROOT}&quot;,security_model=passthrough,readonly \
+  -device \
+    virtio-9p-pci,fsdev=fsdev-root,mount_tag=/dev/root
+</code></pre><p>Make sure you're using the <a href="#kernel-cmdline">corresponding kernel cmdline</a>
+options.</p>
+<h3 id="creating-a-bootable-uefi-guest-image">Creating A Bootable UEFI Guest Image</h3>
+<p>Create <code>qcow2</code> image</p>
+<pre><code class="language-console" data-lang="console">$ qemu-img create -f qcow2 image.qcow2 20G
+</code></pre><blockquote>
+<p>Source of NBD commands: <a href="https://gist.github.com/shamil/62935d9b456a6f9877b5">https://gist.github.com/shamil/62935d9b456a6f9877b5</a></p>
+</blockquote>
+<p>Enable network block devices</p>
+<pre><code class="language-console" data-lang="console">$ sudo modprobe nbd max_part=8
+</code></pre><p>Map the image file to the <code>/dev/nbd0</code> network block device</p>
+<pre><code class="language-console" data-lang="console">$ sudo qemu-nbd --connect=/dev/nbd0 image.qcow2
+</code></pre><p>Create GPT partition table (UEFI)</p>
+<pre><code class="language-console" data-lang="console">$ sudo parted /dev/nbd0 &lt;&lt; 'EOF'
+mklabel gpt
+mkpart primary fat32 1MiB 261MiB
+set 1 esp on
+mkpart primary linux-swap 261MiB 10491MiB
+mkpart primary ext4 10491MiB 100%
+EOF
+</code></pre><p>Format partitions</p>
+<pre><code class="language-console" data-lang="console">$ sudo mkfs.fat /dev/nbd0p1
+$ sudo mkswap /dev/nbd0p2
+$ sudo mkfs.ext4 /dev/nbd0p3
+</code></pre><p>Unmount and disconnect</p>
+<pre><code class="language-console" data-lang="console">$ sudo umount -R /mnt/somepoint/
+$ sudo qemu-nbd --disconnect /dev/nbd0
+</code></pre><blockquote>
+<p>parted commands from: <a href="https://wiki.archlinux.org/index.php/Parted#UEFI/GPT_examples">https://wiki.archlinux.org/index.php/Parted#UEFI/GPT_examples</a></p>
+</blockquote>
+<h3 id="cpu-hotplug">CPU Hotplug</h3>
+<pre><code class="language-conole" data-lang="conole">  -smp 1,maxcpus=2 -qmp unix:/tmp/q,server,nowait
+</code></pre><p>In another shell</p>
+<pre><code class="language-console" data-lang="console">$ sudo qemu/scripts/qmp/qmp-shell -p -v /tmp/q
+Welcome to the QMP low-level shell!
+Connected to QEMU 4.1.0
+
+(QEMU) device_add id=cpu-2 driver=host-x86_64-cpu socket-id=1 core-id=0 thread-id=0 die-id=0
+</code></pre><p>Back in your Linux guest you'll see
+<code>[   51.190460] CPU1 has been hot-added</code> in the dmesg logs.</p>
+<p>To initialize the CPU within the guest</p>
+<pre><code class="language-console" data-lang="console"># echo 1 &gt; /sys/devices/system/cpu/cpu1/online
+</code></pre><blockquote>
+<p>Reference: <a href="https://wiki.qemu.org/Features/CPUHotplug">https://wiki.qemu.org/Features/CPUHotplug</a></p>
+</blockquote>
+<h3 id="precompiled-uefi-firmware">Precompiled UEFI Firmware</h3>
+<p><a href="https://cdn.download.clearlinux.org/image/OVMF.fd">https://cdn.download.clearlinux.org/image/OVMF.fd</a></p>]]></content>
   </entry>
   <entry>
     <title>Binary Downloads</title>
