@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-31T22:01:21Z</updated>
+  <updated>2020-07-31T23:06:51Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -65,6 +65,55 @@ Many commands will only output text to the terminal if that is a part of their
 core functionality. Otherwise commands usually output logging information or
 error information.</p>
 <h2 id="string">String</h2>
+<p>The term <em>string</em> means a sequence of characters. Strings are usually found
+or referred to within quotes. One can use the word string to talk about any
+sequence of characters. Where <em>character</em> likely means something that can be
+found in the <a href="https://man7.org/linux/man-pages/man7/ascii.7.html">ASCII</a> table.</p>
+<pre><code>       Char          Char
+       ----------------------
+       SPACE         `
+       !             a
+       &quot;             b
+       #             c
+       $             d
+       %             e
+       &amp;             f
+       '             g
+       (             h
+       )             i
+       *             j
+       +             k
+       ,             l
+       -             m
+       .             n
+       /             o
+       0             p
+       1             q
+       2             r
+       3             s
+       4             t
+       5             u
+       6             v
+       7             w
+       8             x
+       9             y
+       :             z
+       ;             {
+       &lt;             |
+       =             }
+       &gt;             ~
+</code></pre><p>For example you could call each of the following a string</p>
+<ul>
+<li>
+<p>&quot;Hello World&quot;</p>
+</li>
+<li>
+<p>/home/username</p>
+</li>
+<li>
+<p>UNIX</p>
+</li>
+</ul>
 <h2 id="navigation-and-paths">Navigation and paths</h2>
 <p>A directory is another word for a folder</p>
 <p>When talking about where something is (a directory, a file, a command, etc.) we
@@ -75,16 +124,59 @@ etc.)</p>
 from where we are to wherever something is, we call it a path.</p>
 <ul>
 <li>
-<p><code>/</code> is used to denote</p>
-</li>
-<li>
 <p><code>.</code> means the directory you're in</p>
 </li>
 <li>
 <p><code>..</code> means the directory above the directory you're in</p>
 </li>
 <li>
-<p><code>/path/to/somewhere</code></p>
+<p><code>/</code> means the path <em>separator</em></p>
+</li>
+</ul>
+<p>The file system works like a tree. We call something a <em>full path</em> or an
+<em>absolute path</em> when it starts with <code>/</code>.</p>
+<p>The directory a full path starts with is called the <em>root</em>. It's name is &quot;the
+root directory&quot;, because we can't give it a name, since it's denoted via the
+path separator. Whenever you see <code>/</code> as the only character in a path, or as the
+first character of a path, think to yourself, that's the root directory.</p>
+<p>Where <code>/</code> is not the first or only character, it's used to show separation
+between files and directories.</p>
+<p>Examples</p>
+<ul>
+<li>
+<p><code>/</code></p>
+<ul>
+<li>The root directory</li>
+</ul>
+</li>
+<li>
+<p><code>/a/b/c.txt</code></p>
+<ul>
+<li>Start at the root directory. Then go directory <code>a</code>. Within directory <code>a</code>
+there is a directory <code>b</code>. Go into directory <code>b</code>. Within directory <code>b</code> there
+is a file named <code>c.txt</code>. This is the file the path is referencing</li>
+</ul>
+</li>
+<li>
+<p><code>./a.out</code></p>
+<ul>
+<li><code>.</code> means the current directory. The separator is seen after it. Then we see
+<code>a.out</code> which is the file the path is referencing</li>
+</ul>
+</li>
+<li>
+<p><code>../updog</code></p>
+<ul>
+<li>Look in the directory above the one we're currently in for a file named
+<code>updog</code></li>
+</ul>
+</li>
+<li>
+<p><code>../../updog</code></p>
+<ul>
+<li>Look in the directory above the directory above the one we're currently in
+for a file named <code>updog</code></li>
+</ul>
 </li>
 </ul>
 <h2 id="useful-commands">Useful Commands</h2>
