@@ -9,9 +9,190 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-24T06:55:17Z</updated>
+  <updated>2020-07-31T17:36:40Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
+  <entry>
+    <title>Terminal Quickstart</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/terminal-quickstart/</id>
+    <updated>2020-07-29T18:00:00Z</updated>
+    <published>2020-07-29T18:00:00Z</published>
+    <content type="html"><![CDATA[<blockquote>
+<p>This post is in progress</p>
+</blockquote>
+<h2 id="how-to-read-examples">How to read examples</h2>
+<p>You're about to see a lot of examples similar to this one</p>
+<pre><code class="language-console" data-lang="console">$ echo Hello World
+Hello World
+</code></pre><p>The first line in the above example shows</p>
+<ul>
+<li>
+<p>The <em>prompt</em> (<code>$ </code>)</p>
+</li>
+<li>
+<p>The <em>command</em> (<code>echo</code>)</p>
+</li>
+<li>
+<p>The <em>arguments</em> (<code>Hello World</code>)</p>
+</li>
+</ul>
+<p>The second line and all the lines following it until you see another prompt
+<code>$ </code> show the output which was a result of running a command. In the above
+example. The output was <code>Hello World</code> (the same as the arguments, this is the
+purpose of the <code>echo</code> command).</p>
+<h2 id="command">Command</h2>
+<p>The first word (Including underscores or hyphens) after the prompt <code>$ </code> is the
+command.</p>
+<pre><code class="language-console" data-lang="console">$ ls
+  ^^
+   \--- Command
+</code></pre><h2 id="argument">Argument</h2>
+<p>Everything after the command are called arguments.</p>
+<pre><code class="language-console" data-lang="console">$ ls   -l   mydirectory
+  ^^   ^^   ^^^^^^^^^^^
+   |    |    \--- Argument
+   |    |
+   |    \--- Argument
+   |
+   \--- Command
+</code></pre><h2 id="running-a-command">Running a command</h2>
+<p>To run a command. Type the command and it's arguments into your terminal /
+shell. Then hit enter.</p>
+<p>In the terminal, there is a general philosophy that no news means good news.
+Many commands will only output text to the terminal if that is a part of their
+core functionality. Otherwise commands usually output logging information or
+error information.</p>
+<h2 id="string">String</h2>
+<h2 id="navigation-and-paths">Navigation and paths</h2>
+<p>A directory is another word for a folder</p>
+<p>When talking about where something is (a directory, a file, a command, etc.) we
+use the word <em>path</em>.</p>
+<p>The last part of a path is the something (the directory, the file, the command,
+etc.)</p>
+<p>Whenever we have a string that contains all the information we'd need to get
+from where we are to wherever something is, we call it a path.</p>
+<ul>
+<li>
+<p><code>/</code> is used to denote</p>
+</li>
+<li>
+<p><code>.</code> means the directory you're in</p>
+</li>
+<li>
+<p><code>..</code> means the directory above the directory you're in</p>
+</li>
+<li>
+<p><code>/path/to/somewhere</code></p>
+</li>
+</ul>
+<h2 id="useful-commands">Useful Commands</h2>
+<p>Here are some commands that will be useful for you to understand where you are,
+how to move around, and what stuff is in the directory (aka folder) you're in.</p>
+<h3 id="where-am-i">Where am I?</h3>
+<p>Use the <code>pwd</code> command to find out where you are on your system</p>
+<p>In the below example, we run the <code>pwd</code> command and it tells us we're in our
+<code>HOME</code> directory.</p>
+<pre><code class="language-console" data-lang="console">$ pwd
+/home/username
+</code></pre><h3 id="what-files-are-here">What files are here?</h3>
+<p>The <code>ls</code> command prints the contents of the directory we are currently in</p>
+<pre><code class="language-console" data-lang="console">$ ls
+</code></pre><p>We can supply it with the name of a directory as an argument to have it list the
+contents of that directory</p>
+<pre><code class="language-console" data-lang="console">ls -lAF
+</code></pre><p>If we give <code>-lAF</code> as an argument to <code>ls</code> it will show us all the hidden files as
+a long list.</p>
+<pre><code class="language-console" data-lang="console">ls -lAF
+</code></pre><h3 id="how-do-i-move-around">How do I move around?</h3>
+<p>Pass the path</p>
+<pre><code class="language-console" data-lang="console">$ cd somewhere
+</code></pre><p>Pass no arguments to be taken to your home directory</p>
+<pre><code class="language-console" data-lang="console">$ cd
+</code></pre><h3 id="how-to-i-create-new-directories">How to I create new directories?</h3>
+<pre><code class="language-console" data-lang="console">$ mkdir -p my-new-directory
+</code></pre><h3 id="download-files">Download files?</h3>
+<p>The curl or wget commands download files when provided with a URL</p>
+<p>wget will save the file as it's filename</p>
+<pre><code class="language-console" data-lang="console">$ wget 'https://example.com/file.tar.gz'
+</code></pre><p>curl usually needs to be told to follow redirects using <code>-L</code> and then to have it
+save the file as the filename you'll need <code>-O</code> (which if you put it with the <code>-L you only need one </code>-`).</p>
+<pre><code class="language-console" data-lang="console">$ curl -LO 'https://example.com/file.tar.gz'
+</code></pre><blockquote>
+<p>Sometimes one is installed on your system and the other isn't. Try the other
+one if you're seeing something allong the lines of &quot;Command not found&quot;</p>
+</blockquote>
+<h3 id="extract-zip-and-tar-files">Extract zip and tar files?</h3>
+<p>When you download software it usually in a <code>.tar</code> or <code>.zip</code> file.</p>
+<p>You can extract <code>.tar</code> files using the tar command.</p>
+<pre><code class="language-console" data-lang="console">$ tar -xvf file.tar.gz
+</code></pre><p>You can extract <code>.zip</code> files using the unzip command.</p>
+<pre><code class="language-console" data-lang="console">$ unzip file.zip
+</code></pre><h2 id="editor---vim">Editor - VIM</h2>
+<p>vim (aka vi) is a common editor you'll find installed on a lot of UNIX systems.</p>
+<p>To edit <code>filename.c</code> pass it as an argument to vim</p>
+<pre><code class="language-console" data-lang="console">$ vim filename.c
+</code></pre><p>Press</p>
+<ul>
+<li>
+<p><code>i</code> to start editing</p>
+<ul>
+<li>Use the arrow keys to move around</li>
+</ul>
+</li>
+<li>
+<p><code>ESC</code> to get out of editing mode</p>
+<ul>
+<li>
+<p><code>:w</code> and then enter to save the file</p>
+</li>
+<li>
+<p><code>:q</code> and then enter to quit</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>You can learn how to use vim by going to <a href="https://vim-adventures.com/">https://vim-adventures.com/</a></p>
+<h2 id="development">Development</h2>
+<p>make</p>
+<ul>
+<li>
+<p>Helps us organize the building of our projects</p>
+</li>
+<li>
+<p>Uses Makefile</p>
+</li>
+<li>
+<p>Running make in a directory where there is a make should build the program</p>
+</li>
+</ul>
+<p>CC</p>
+<ul>
+<li>Shell variable to set to specify an alternate C compiler</li>
+</ul>
+<p>CXX</p>
+<ul>
+<li>Shell variable to set to specify an alternate C++ compiler</li>
+</ul>
+<h2 id="keyboard-shortcuts">Keyboard Shortcuts</h2>
+<p>Some keys or key combinations that can speed you up.</p>
+<h3 id="tab">Tab</h3>
+<p>Whenever you hit the Tab key on your keyboard (above Caps Lock) your shell will
+attempt to auto complete whatever you're typing. Hit Tab twice for a list of
+autocomplete options. Keep typing and hitting tab and eventually when there is
+only one match left it will fill the rest of the word in.</p>
+<blockquote>
+<p>TODO Add asciinema video of Tab complete in action</p>
+</blockquote>
+<h3 id="ctrl-r">Ctrl-R</h3>
+<p>Start typing to reverse search through your past commands. Hit enter to run.</p>
+<blockquote>
+<p>TODO Add asciinema video of Ctrl-R complete in action</p>
+</blockquote>]]></content>
+  </entry>
   <entry>
     <title>CORS</title>
     <author>
