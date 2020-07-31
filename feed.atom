@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-31T23:23:36Z</updated>
+  <updated>2020-07-31T23:27:07Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -22,7 +22,7 @@
     <updated>2020-07-27T18:00:00Z</updated>
     <published>2020-07-29T18:00:00Z</published>
     <content type="html"><![CDATA[<center>
-![Its dangerous to go alone, take this](/images/terminal-quickstart.gif)
+<img alt="Its dangerous to go alone, take this! $ _" src="/images/terminal-quickstart.gif" />
 </center>
 <h2 id="how-to-read-examples">How to read examples</h2>
 <p>You're about to see a lot of examples similar to this one</p>
