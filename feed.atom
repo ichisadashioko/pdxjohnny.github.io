@@ -9,9 +9,45 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-07-31T23:27:07Z</updated>
+  <updated>2020-08-20T21:16:08Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
+  <entry>
+    <title>C Development</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/c-development/</id>
+    <updated>2020-08-20T21:00:00Z</updated>
+    <published>2020-08-20T21:00:00Z</published>
+    <content type="html"><![CDATA[<blockquote>
+<p>This post is in progress</p>
+</blockquote>
+<h2 id="configuresh">configure.sh</h2>
+<p><code>autoconf</code> is a package which provides the tooling that a lot of long time C
+projects use. Projects which use <code>autoconf</code> have files such as</p>
+<ul>
+<li><code>bootstrap</code></li>
+<li><code>bootstrap.sh</code></li>
+<li><code>configure</code></li>
+<li><code>configure.sh</code></li>
+<li><code>configure.ac</code></li>
+<li><code>Makefile.am</code></li>
+</ul>
+<p>You'll hear these projects referred to as &quot;autoconf&quot; or &quot;autotools&quot; based
+projects.</p>
+<h3 id="troubleshooting">Troubleshooting</h3>
+<p>If you get issues with projects that have <code>bootstrap</code>, <code>configure.sh</code>, or
+<code>configure.ac</code>, you likely need to make sure the following packages are
+installed on your system. Typaclly you'll find you're missing <code>autoconf-archive</code>
+or <code>pkg-config</code>. These can be the source of many m4 macro not found errors.</p>
+<ul>
+<li>autoconf</li>
+<li>autoconf-archive</li>
+<li>pkg-config</li>
+</ul>]]></content>
+  </entry>
   <entry>
     <title>Terminal Quickstart</title>
     <author>
