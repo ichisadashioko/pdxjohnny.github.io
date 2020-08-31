@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-08-20T21:21:24Z</updated>
+  <updated>2020-08-31T19:40:22Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -1319,7 +1319,10 @@ you got it.</p>
     <id>https://pdxjohnny.github.io/tricks/</id>
     <updated>2020-07-07T19:00:00Z</updated>
     <published>2020-07-07T19:00:00Z</published>
-    <content type="html"><![CDATA[<h2 id="display-only-blocks-of-text-with-certain-text-in-them">Display only blocks of text with certain text in them</h2>
+    <content type="html"><![CDATA[<h2 id="download-file-with-python-from-command-line-with-progress">Download file with Python from command line with progress</h2>
+<pre><code class="language-console" data-lang="console">$ python3 -c 'import sys, functools, urllib.request; print(urllib.request.urlretrieve(sys.argv[-1], reporthook=lambda n, c, t: print(f&quot;{round(((n*c)/t) * 100, 2)}%&quot;, end=&quot;\r&quot;, file=sys.stderr))[0])' https://storage.googleapis.com/laurencemoroney-blog.appspot.com/rps.zip
+</code></pre><p><a href="https://asciinema.org/a/357044"><img src="https://asciinema.org/a/357044.svg" alt="asciicast"></a></p>
+<h2 id="display-only-blocks-of-text-with-certain-text-in-them">Display only blocks of text with certain text in them</h2>
 <p>Use grep to displays blocks of text. Only display blocks with certain text
 inside them.</p>
 <pre><code class="language-console" data-lang="console">$ git grep -A 25 -E 'dffml train|dffml accuracy|dffml predict' | python -c 'import sys; print(&quot;--&quot;.join([i for i in sys.stdin.read().split(&quot;--&quot;) if not &quot;model-directory&quot; in i]).strip())'
