@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-10-06T17:55:14Z</updated>
+  <updated>2020-10-06T17:57:47Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -487,18 +487,18 @@ are not going to cover what dependencies are required. You should read the
 reference links for each section to help you get the compilers and other build
 tools you will need.</p>
 <h2 id="building-the-kernel">Building the Kernel</h2>
-<pre><code>git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-cd linux
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+<span class="nb">cd</span> linux
 git checkout v5.8
-# Copy your system's config into the kernel source tree to use as your config
-# You can modify it too if you want but you can be pretty sure this will give
-# you a working kernel without having to edit it
-cp $(ls /boot/config-* | head -n 1) .config
+<span class="c1"># Copy your system&#39;s config into the kernel source tree to use as your config</span>
+<span class="c1"># You can modify it too if you want but you can be pretty sure this will give</span>
+<span class="c1"># you a working kernel without having to edit it</span>
+cp <span class="k">$(</span>ls /boot/config-* <span class="p">|</span> head -n 1<span class="k">)</span> .config
 make olddefconfig
-# Build just the bzImage needed to boot the VM. If you want to build all the
-# modules too, just leave off the last argument (bzImage)
-make -j $(($(nproc)*4)) bzImage
-</code></pre><blockquote>
+<span class="c1"># Build just the bzImage needed to boot the VM. If you want to build all the</span>
+<span class="c1"># modules too, just leave off the last argument (bzImage)</span>
+make -j <span class="k">$(($(</span>nproc<span class="k">)</span><span class="o">*</span><span class="m">4</span><span class="k">))</span> bzImage
+</code></pre></div><blockquote>
 <p>References</p>
 <ul>
 <li><a href="https://docs.fedoraproject.org/en-US/quick-docs/kernel/build-custom-kernel/#_get_the_dependencies">Fedora Build Dependencies</a></li>
@@ -506,16 +506,16 @@ make -j $(($(nproc)*4)) bzImage
 </ul>
 </blockquote>
 <h2 id="building-qemu">Building QEMU</h2>
-<pre><code>git clone https://git.qemu.org/git/qemu.git
-cd qemu
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">git clone https://git.qemu.org/git/qemu.git
+<span class="nb">cd</span> qemu
 git checkout v5.1.0
 git submodule init
 git submodule update --recursive
 mkdir build
-cd build
+<span class="nb">cd</span> build
 ../configure
-make -j $(($(nproc)*4))
-</code></pre><blockquote>
+make -j <span class="k">$(($(</span>nproc<span class="k">)</span><span class="o">*</span><span class="m">4</span><span class="k">))</span>
+</code></pre></div><blockquote>
 <p>References</p>
 <ul>
 <li><a href="https://wiki.qemu.org/Hosts/Linux">https://wiki.qemu.org/Hosts/Linux</a></li>
@@ -527,11 +527,11 @@ make -j $(($(nproc)*4))
 run your development Kernel in a virtual machine. You can modify it as you wish.</p>
 <script src="https://gist.github.com/pdxjohnny/a0dc3a58b4651dc3761bee65a198a80d.js"></script>
 <p>Here's how you download it, make it executable, and run it.</p>
-<pre><code>curl -o run-vm.sh -fSL https://gist.github.com/pdxjohnny/a0dc3a58b4651dc3761bee65a198a80d/raw/da2f456c9ecbb56bf84ee30c8c83a2762e86fb43/run-vm.sh &amp;&amp; \
-echo &quot;eb5c49fb0aff6b3293ad6f4bd8c7a9c32df97f40d3c8c4fe404b72c1e9c283b44e714be493ce88b5f22e5bb717b8f71d  run-vm.sh&quot; | sha384sum -c - &amp;&amp; \
-chmod 755 run-vm.sh
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">curl -o run-vm.sh -fSL https://gist.github.com/pdxjohnny/a0dc3a58b4651dc3761bee65a198a80d/raw/da2f456c9ecbb56bf84ee30c8c83a2762e86fb43/run-vm.sh <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span><span class="nb">echo</span> <span class="s2">&#34;eb5c49fb0aff6b3293ad6f4bd8c7a9c32df97f40d3c8c4fe404b72c1e9c283b44e714be493ce88b5f22e5bb717b8f71d  run-vm.sh&#34;</span> <span class="p">|</span> sha384sum -c - <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>chmod <span class="m">755</span> run-vm.sh
 ./run-vm.sh
-</code></pre><h2 id="debugging">Debugging</h2>
+</code></pre></div><h2 id="debugging">Debugging</h2>
 <p>Core dumps and kgdb: <a href="https://elinux.org/images/f/f0/Bingham.pdf">https://elinux.org/images/f/f0/Bingham.pdf</a></p>
 <h2 id="exploitation">Exploitation</h2>
 <p>SMEP disable via ROP, KASLR bypasss via DMESG</p>
@@ -541,8 +541,8 @@ chmod 755 run-vm.sh
 <h2 id="hacking-with-vim">Hacking With VIM</h2>
 <p><a href="https://stackoverflow.com/questions/33676829/vim-configuration-for-linux-kernel-development">https://stackoverflow.com/questions/33676829/vim-configuration-for-linux-kernel-development</a></p>
 <h2 id="build-in-tree-modules">Build In Tree Modules</h2>
-<pre><code class="language-console" data-lang="console">make -j $(($(nproc)*4)) M=arch/x86/kvm/ modules
-</code></pre><h2 id="install-kernel-to-chroot">Install Kernel To chroot</h2>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">make -j <span class="k">$(($(</span>nproc<span class="k">)</span><span class="o">*</span><span class="m">4</span><span class="k">))</span> <span class="nv">M</span><span class="o">=</span>arch/x86/kvm/ modules
+</code></pre></div><h2 id="install-kernel-to-chroot">Install Kernel To chroot</h2>
 <p>Here's how you install a kernel to a chroot. Or tar it up and
 send it over to another system for use there.</p>
 <div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># Edit your config</span>
