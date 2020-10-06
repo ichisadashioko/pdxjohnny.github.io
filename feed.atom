@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-10-05T17:05:15Z</updated>
+  <updated>2020-10-06T17:55:14Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -473,15 +473,65 @@ decrease size of output file</p>
 </code></pre>]]></content>
   </entry>
   <entry>
-    <title>Linux Kernel Tips And Tricks</title>
+    <title>Linux Kernel Development Tips And Tricks</title>
     <author>
       <name>John Andersen</name>
       <uri>https://pdxjohnny.github.io/</uri>
     </author>
     <id>https://pdxjohnny.github.io/linux-kernel/</id>
-    <updated>2020-07-24T06:00:00Z</updated>
+    <updated>2020-10-06T08:00:00Z</updated>
     <published>2020-07-24T06:00:00Z</published>
-    <content type="html"><![CDATA[<h2 id="debugging">Debugging</h2>
+    <content type="html"><![CDATA[<h1 id="quickstart">Quickstart</h1>
+<p>We are going to download the Git repositories of QEMU and the Linux kernel. We
+are not going to cover what dependencies are required. You should read the
+reference links for each section to help you get the compilers and other build
+tools you will need.</p>
+<h2 id="building-the-kernel">Building the Kernel</h2>
+<pre><code>git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+cd linux
+git checkout v5.8
+# Copy your system's config into the kernel source tree to use as your config
+# You can modify it too if you want but you can be pretty sure this will give
+# you a working kernel without having to edit it
+cp $(ls /boot/config-* | head -n 1) .config
+make olddefconfig
+# Build just the bzImage needed to boot the VM. If you want to build all the
+# modules too, just leave off the last argument (bzImage)
+make -j $(($(nproc)*4)) bzImage
+</code></pre><blockquote>
+<p>References</p>
+<ul>
+<li><a href="https://docs.fedoraproject.org/en-US/quick-docs/kernel/build-custom-kernel/#_get_the_dependencies">Fedora Build Dependencies</a></li>
+<li><a href="https://wiki.ubuntu.com/Kernel/BuildYourOwnKernel#Build_Environment">Ubuntu Build Dependencies</a></li>
+</ul>
+</blockquote>
+<h2 id="building-qemu">Building QEMU</h2>
+<pre><code>git clone https://git.qemu.org/git/qemu.git
+cd qemu
+git checkout v5.1.0
+git submodule init
+git submodule update --recursive
+mkdir build
+cd build
+../configure
+make -j $(($(nproc)*4))
+</code></pre><blockquote>
+<p>References</p>
+<ul>
+<li><a href="https://wiki.qemu.org/Hosts/Linux">https://wiki.qemu.org/Hosts/Linux</a></li>
+<li><a href="https://www.qemu.org/download/#source">https://www.qemu.org/download/#source</a></li>
+</ul>
+</blockquote>
+<h2 id="running-your-vm">Running your VM</h2>
+<p>Put the following script in a file called <code>run-vm.sh</code>. It will be the way you
+run your development Kernel in a virtual machine. You can modify it as you wish.</p>
+<script src="https://gist.github.com/pdxjohnny/a0dc3a58b4651dc3761bee65a198a80d.js"></script>
+<p>Here's how you download it, make it executable, and run it.</p>
+<pre><code>curl -o run-vm.sh -fSL https://gist.github.com/pdxjohnny/a0dc3a58b4651dc3761bee65a198a80d/raw/da2f456c9ecbb56bf84ee30c8c83a2762e86fb43/run-vm.sh &amp;&amp; \
+echo &quot;eb5c49fb0aff6b3293ad6f4bd8c7a9c32df97f40d3c8c4fe404b72c1e9c283b44e714be493ce88b5f22e5bb717b8f71d  run-vm.sh&quot; | sha384sum -c - &amp;&amp; \
+chmod 755 run-vm.sh
+./run-vm.sh
+</code></pre><h2 id="debugging">Debugging</h2>
 <p>Core dumps and kgdb: <a href="https://elinux.org/images/f/f0/Bingham.pdf">https://elinux.org/images/f/f0/Bingham.pdf</a></p>
 <h2 id="exploitation">Exploitation</h2>
 <p>SMEP disable via ROP, KASLR bypasss via DMESG</p>
