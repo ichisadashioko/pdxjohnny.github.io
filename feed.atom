@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-10-06T18:01:08Z</updated>
+  <updated>2020-10-08T19:57:31Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -689,6 +689,7 @@ operate on whatever VMCS we pointed to via the <code>VMPTRLD</code> instruction.
     <published>2020-07-24T06:00:00Z</published>
     <content type="html"><![CDATA[<p>QEMU is an indispensable tool for the virtual machine inclined. It's a command
 line utility for running virtual machines.</p>
+<p>Main documentation: <a href="https://www.qemu.org/docs/master/system/">https://www.qemu.org/docs/master/system/</a></p>
 <h2 id="example-flags">Example Flags</h2>
 <p>Run a 64 bit Intel / AMD system</p>
 <pre><code class="language-console" data-lang="console">qemu-system-x86_64 ...
@@ -707,13 +708,39 @@ $ ll /dev/kvm
 crw-rw-rw- 1 root kvm 10, 232 Jul 22 12:10 /dev/kvm
 </code></pre><h3 id="multiple-cpus">Multiple CPUs</h3>
 <pre><code>  -smp cpus=4
+</code></pre><p>More detailed</p>
+<pre><code>  -smp sockets=1,cpus=4,cores=2 -cpu host
 </code></pre><h3 id="memory">Memory</h3>
 <pre><code>  -m 8192M
+</code></pre><h3 id="networking---nat">Networking - NAT</h3>
+<pre><code>  -netdev user,id=mynet0 \
+  -device virtio-net-pci,netdev=mynet0
+</code></pre><p>You can also do what's known as &quot;bridged&quot; networking. It can be a bit of a mess
+though. It's covered in the main QEMU documenation at the top.</p>
+<blockquote>
+<p>TODO Cover bridged networking</p>
+</blockquote>
+<h3 id="usb">USB</h3>
+<p>You may want to give a VM control over a USB device, such as a USB NIC.</p>
+<p>Creating a echi device and attaching the usb device to it is important!</p>
+<p>Use <code>lsusb -v</code> to find the idProduct (productid) and idVendor (vendorid)</p>
+<pre><code>  -usb \
+  -device usb-ehci,id=ehci \
+  -device usb-host,bus=ehci.0,vendorid=0x0424,productid=0xEC00
+</code></pre><h3 id="share-small-files">Share small files</h3>
+<pre><code>  -virtfs local,path=$PWD/share,mount_tag=host0,security_model=mapped-file,id=host0
+</code></pre><h3 id="fast-random-number-generator">Fast Random Number Generator</h3>
+<pre><code>  -device virtio-rng-pci
 </code></pre><h3 id="port-forwarding">Port Forwarding</h3>
 <pre><code>  -net \
-    nic,model=virtio \
-  -net \
     user,hostfwd=tcp::2222-:22,hostfwd=tcp::4444-:2222
+</code></pre><h3 id="guest-image">Guest Image</h3>
+<p>For a raw <code>.img</code> or <code>.iso</code></p>
+<pre><code>  -drive \
+    file=&quot;image.iso&quot;,if=virtio,aio=threads,format=raw
+</code></pre><p>For a <code>.qcow2</code></p>
+<pre><code>  -drive \
+    file=&quot;image.qcow2&quot;,if=virtio,aio=threads,format=qcow2
 </code></pre><h3 id="kernel">Kernel</h3>
 <p>Boot directly to a Linux kernel binary (skips some BIOS stuff)</p>
 <pre><code>  -kernel \
@@ -797,7 +824,14 @@ Connected to QEMU 4.1.0
 <p>Reference: <a href="https://wiki.qemu.org/Features/CPUHotplug">https://wiki.qemu.org/Features/CPUHotplug</a></p>
 </blockquote>
 <h3 id="precompiled-uefi-firmware">Precompiled UEFI Firmware</h3>
-<p><a href="https://cdn.download.clearlinux.org/image/OVMF.fd">https://cdn.download.clearlinux.org/image/OVMF.fd</a></p>]]></content>
+<p><a href="https://cdn.download.clearlinux.org/image/OVMF.fd">https://cdn.download.clearlinux.org/image/OVMF.fd</a></p>
+<pre><code>UEFI_BIOS=&quot;-bios OVMF.fd&quot;
+
+if [ -f OVMF_VARS.fd -a -f OVMF_CODE.fd ]; then
+    UEFI_BIOS=&quot; -drive file=OVMF_CODE.fd,if=pflash,format=raw,unit=0,readonly=on &quot;
+    UEFI_BIOS+=&quot; -drive file=OVMF_VARS.fd,if=pflash,format=raw,unit=1 &quot;
+fi
+</code></pre>]]></content>
   </entry>
   <entry>
     <title>Wireguard HowTo</title>
