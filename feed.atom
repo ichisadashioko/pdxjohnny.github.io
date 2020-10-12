@@ -9,9 +9,42 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-10-12T21:48:16Z</updated>
+  <updated>2020-10-12T21:56:43Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
+  <entry>
+    <title>Python</title>
+    <author>
+      <name>John Andersen</name>
+      <uri>https://pdxjohnny.github.io/</uri>
+    </author>
+    <id>https://pdxjohnny.github.io/python/</id>
+    <updated>2020-10-12T21:50:57Z</updated>
+    <published>2020-10-12T21:50:57Z</published>
+    <content type="html"><![CDATA[<blockquote>
+<p>This post is in progress</p>
+</blockquote>
+<h1 id="async-def-and-await"><code>async def</code> and <code>await</code></h1>
+<p><code>await</code> is a keyword which means &quot;give me the return value <em>when it's ready</em>&quot;.
+The caller is understands the return value may not be ready right away. The
+caller knows that the callee may not have the return value right away since the
+callee function was defined with <code>async def</code>. Using the <code>await</code> keyword tells
+Python that the caller wishes to pause execution (stay at the same line) and
+wait for the callee's return value to be ready. Pausing of execution is usually
+due to (but not limited to) network events, such as sending or receiving of
+data, or the completion of work done within another thread or process.</p>
+<p>The power of using <code>async def</code> (and
+<a href="https://docs.python.org/3.7/library/asyncio-task.html"><code>asyncio</code></a> in general)
+is that since the execution of a caller can be paused, multiple <code>async def</code>
+functions can be run at the same time, an <code>async def</code> function is also known as
+a coroutine. When a coroutine reaches the point where it would be waiting on an
+event, such as completion of work in another thread or process, or a network
+receive, etc. Python pauses the execution of that coroutine, and checks if there
+is another coroutine that was waiting for an event which completed during the
+running of the previous coroutine. If it finds a coroutine that was waiting for
+a now complete event, it runs that coroutine until it either completes, or until
+it is stuck waiting on another event.</p>]]></content>
+  </entry>
   <entry>
     <title>C Development</title>
     <author>
