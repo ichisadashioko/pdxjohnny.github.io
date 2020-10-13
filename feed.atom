@@ -9,7 +9,7 @@
   </author>
   <icon>https://pdxjohnny.github.io/image/brand/icon-1-1.png</icon>
   <logo>https://pdxjohnny.github.io/image/brand/icon-2-1.png</logo>
-  <updated>2020-10-12T21:56:43Z</updated>
+  <updated>2020-10-13T14:57:54Z</updated>
   <link rel="self" type="application/atom+xml" href="https://pdxjohnny.github.io/feed.atom" hreflang="en-us"/>
   <link rel="alternate" type="text/html" href="https://pdxjohnny.github.io/" hreflang="en-us"/>
   <entry>
@@ -564,8 +564,15 @@ run your development Kernel in a virtual machine. You can modify it as you wish.
 </span><span class="se"></span><span class="nb">echo</span> <span class="s2">&#34;eb5c49fb0aff6b3293ad6f4bd8c7a9c32df97f40d3c8c4fe404b72c1e9c283b44e714be493ce88b5f22e5bb717b8f71d  run-vm.sh&#34;</span> <span class="p">|</span> sha384sum -c - <span class="o">&amp;&amp;</span> <span class="se">\
 </span><span class="se"></span>chmod <span class="m">755</span> run-vm.sh
 ./run-vm.sh
-</code></pre></div><h2 id="debugging">Debugging</h2>
-<p>Core dumps and kgdb: <a href="https://elinux.org/images/f/f0/Bingham.pdf">https://elinux.org/images/f/f0/Bingham.pdf</a></p>
+</code></pre></div><h2 id="tools">Tools</h2>
+<ul>
+<li>
+<p><a href="https://pypi.org/project/b4/">b4</a></p>
+<ul>
+<li>Grab patches from mailing list</li>
+</ul>
+</li>
+</ul>
 <h2 id="exploitation">Exploitation</h2>
 <p>SMEP disable via ROP, KASLR bypasss via DMESG</p>
 <ul>
@@ -662,8 +669,8 @@ GDB working!</p>
 </span><span class="cm">
 </span><span class="cm">Breakpoint 1, machine_kexec (image=0xffff888006f96800) at arch/x86/kernel/machine_kexec_64.c:374
 </span><span class="cm">(gdb)
-</span><span class="cm">
-</span></code></pre></div><h2 id="kvm">KVM</h2>
+</span></code></pre></div><p>Core dumps and kgdb: <a href="https://elinux.org/images/f/f0/Bingham.pdf">https://elinux.org/images/f/f0/Bingham.pdf</a></p>
+<h2 id="kvm">KVM</h2>
 <p><a href="https://lwn.net/Articles/658511/">https://lwn.net/Articles/658511/</a></p>
 <h3 id="nested-and-vmcs">Nested and VMCS</h3>
 <p><a href="https://web.archive.org/web/20191105205408/http://events19.linuxfoundation.org/wp-content/uploads/2017/12/Improving-KVM-x86-Nested-Virtualization-Liran-Alon-Oracle.pdf">https://web.archive.org/web/20191105205408/http://events19.linuxfoundation.org/wp-content/uploads/2017/12/Improving-KVM-x86-Nested-Virtualization-Liran-Alon-Oracle.pdf</a></p>
